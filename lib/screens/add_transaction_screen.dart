@@ -248,7 +248,6 @@ SizedBox(height: 16),
                 ],
               ),
 SizedBox(height: 16),
-              // Upload Foto (Image Picker)
               Row(
                 children: [
                   Container(
