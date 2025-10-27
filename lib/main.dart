@@ -8,11 +8,11 @@ void main() async {
   // Inisialisasi lokalisasi (agar format tanggal 'd MMMM yyyy' jadi bahasa Indonesia)
   await initializeDateFormatting('id_ID', null); 
   
-  runApp(const MyApp());
+  runApp(const ExpenseTrackerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class ExpenseTrackerApp extends StatelessWidget {
+  const ExpenseTrackerApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
