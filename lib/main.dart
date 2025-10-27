@@ -1,74 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:expense_tracker/services/local_storage_service.dart';
-import 'package:expense_tracker/models/transaction_model.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+
+Future<void> initAppDirectory() async {
+  // Fungsi ini hanya dijalankan di platform selain web
+  try {
+    if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS && !Platform.isAndroid && !Platform.isIOS) {
+      // Jika di web, tidak perlu inisialisasi path provider
+      return;
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+    debugPrint('App directory initialized: ${directory.path}');
+  } catch (e) {
+    debugPrint('Skipping directory initialization (likely running on web): $e');
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Ambil data transaksi
-  final transactions = await LocalStorageService.readTransactions();
-
-  runApp(ExpenseTrackerApp(transactions: transactions));
+  await initAppDirectory();
+  runApp(const ExpenseTrackerApp());
 }
 
 class ExpenseTrackerApp extends StatelessWidget {
-  final List<TransactionModel> transactions;
-
-  const ExpenseTrackerApp({super.key, required this.transactions});
+  const ExpenseTrackerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Expense Tracker',
       debugShowCheckedModeBanner: false,
+      title: 'Expense Tracker',
       theme: ThemeData(
-        primarySwatch: Colors.teal,
+        primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.grey[100],
       ),
-      home: HomeScreen(transactions: transactions),
+      home: const ExpenseHomePage(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  final List<TransactionModel> transactions;
+class ExpenseHomePage extends StatefulWidget {
+  const ExpenseHomePage({super.key});
 
-  const HomeScreen({super.key, required this.transactions});
+  @override
+  State<ExpenseHomePage> createState() => _ExpenseHomePageState();
+}
+
+class _ExpenseHomePageState extends State<ExpenseHomePage> {
+  double totalBalance = 0;
+  final List<Map<String, dynamic>> transactions = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Tracker'),
+        centerTitle: true,
       ),
-      body: transactions.isEmpty
-          ? const Center(
-              child: Text(
-                'Belum ada transaksi',
-                style: TextStyle(fontSize: 18),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Total Saldo',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Rp ${totalBalance.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.green),
+                    ),
+                  ],
+                ),
               ),
-            )
-          : ListView.builder(
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
               itemCount: transactions.length,
               itemBuilder: (context, index) {
-                final tx = transactions[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
-                  child: ListTile(
-                    title: Text(tx.title),
-                    subtitle: Text(
-                        "${tx.category} • ${tx.date.toLocal().toString().split(' ')[0]}"),
-                    trailing: Text(
-                      'Rp ${tx.amount.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                final trx = transactions[index];
+                return ListTile(
+                  title: Text(trx['category']),
+                  subtitle: Text(trx['date']),
+                  trailing: Text('Rp ${trx['amount']}'),
                 );
               },
             ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addTransaction,
+        child: const Icon(Icons.add),
+      ),
     );
+  }
+
+  void _addTransaction() {
+    setState(() {
+      transactions.add({
+        'category': 'Belanja',
+        'amount': 50000,
+        'date': DateTime.now().toString().split(' ')[0],
+      });
+      totalBalance -= 50000;
+    });
   }
 }
