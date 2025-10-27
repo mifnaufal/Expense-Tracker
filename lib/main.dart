@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/services/local_storage_service.dart';
+// ignore: unused_import
 import 'package:expense_tracker/models/transaction_model.dart';
 
 void main() async {
