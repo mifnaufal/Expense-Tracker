@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "title": "Makan Siang",
+    "amount": 45000,
+    "category": "Makanan",
+    "date": "2025-10-27T12:00:00",
+    "imagePath": null
+  },
+  {
+    "id": "2",
+    "title": "Transportasi",
+    "amount": 20000,
+    "category": "Transport",
+    "date": "2025-10-26T09:00:00",
+    "imagePath": null
+  }
+]
