@@ -32,4 +32,4 @@ class ExpenseTrackerApp extends StatelessWidget {
       locale: Locale('id', 'ID'), 
     );
   }
-}
+} 
