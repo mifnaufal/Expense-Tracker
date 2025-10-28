@@ -1,23 +1,15 @@
-// lib/models/transaction_model.dart
-
-import 'dart:io';
-
-// Enum ini tetap kita pakai untuk logic UI (misal warna & ikon)
-enum TransactionType {
-  pemasukan,
-  pengeluaran,
-}
+enum TransactionType { pemasukan, pengeluaran }
 
 class TransactionModel {
   final String id;
   final String title;
   final double amount;
-  final String category; // SesuAI JSON: "Makanan", "Transportasi"
+  final String category;
   final DateTime date;
-  final String? imagePath; // SesuAI JSON: "imagePath": null
-  final TransactionType type; // Ini kita derive dari category
+  final String? imagePath;
+  final TransactionType type;
 
-  TransactionModel({
+  const TransactionModel({
     required this.id,
     required this.title,
     required this.amount,
@@ -27,41 +19,93 @@ class TransactionModel {
     required this.type,
   });
 
-  // Factory constructor untuk membuat instance dari Map (JSON)
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
-    
-    // Tentukan Tipe (pemasukan/pengeluaran) berdasarkan Kategori
-    // Kita buat asumsi di sini
-    final String category = json['category'];
-    TransactionType derivedType = TransactionType.pengeluaran; // Default pengeluaran
-
-    // Tambahkan kategori lain yang termasuk pemasukan
-    if (category.toLowerCase() == 'gaji' || category.toLowerCase() == 'bonus') {
-      derivedType = TransactionType.pemasukan;
-    }
+    final String rawCategory = (json['category'] ?? '') as String;
+    final String? rawType = json['type'] as String?;
+    final TransactionType resolvedType = _tryParseType(rawType) ?? _deriveTypeFromCategory(rawCategory);
 
     return TransactionModel(
-      id: json['id'],
-      title: json['title'],
-      amount: (json['amount'] as num).toDouble(), // Konversi aman dari int/double
-      category: category,
-      date: DateTime.parse(json['date']), // Parsing string tanggal ISO 8601
-      imagePath: json['imagePath'],
-      type: derivedType, // Masukkan tipe yang sudah kita tentukan
+      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: (json['title'] ?? '') as String,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      category: rawCategory,
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
+      imagePath: (json['imagePath'] as String?)?.trim().isEmpty == true
+          ? null
+          : json['imagePath'] as String?,
+      type: resolvedType,
     );
   }
 
-  // Method untuk konversi instance ke Map (JSON)
-  // (Berguna saat nanti mengimplementasikan 'save')
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'amount': amount,
       'category': category,
-      'date': date.toIso8601String(), // Simpan sebagai string ISO 8601
+      'date': date.toIso8601String(),
       'imagePath': imagePath,
-      // 'type' tidak perlu disimpan karena di-derive dari 'category'
+      'type': type.name,
     };
+  }
+
+  TransactionModel copyWith({
+    String? id,
+    String? title,
+    double? amount,
+    String? category,
+    DateTime? date,
+    String? imagePath,
+    TransactionType? type,
+  }) {
+    return TransactionModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      category: category ?? this.category,
+      date: date ?? this.date,
+      imagePath: imagePath ?? this.imagePath,
+      type: type ?? this.type,
+    );
+  }
+
+  @override
+  String toString() =>
+      'TransactionModel(id: $id, title: $title, amount: $amount, category: $category, date: $date, type: ${type.name})';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! TransactionModel) return false;
+    return id == other.id &&
+        title == other.title &&
+        amount == other.amount &&
+        category == other.category &&
+        date == other.date &&
+        imagePath == other.imagePath &&
+        type == other.type;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, amount, category, date, imagePath, type);
+
+  static TransactionType? _tryParseType(String? rawType) {
+    if (rawType == null) return null;
+    try {
+      return TransactionType.values.firstWhere((type) => type.name == rawType);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static TransactionType _deriveTypeFromCategory(String category) {
+    final lowerCategory = category.toLowerCase();
+    if (lowerCategory.contains('gaji') ||
+        lowerCategory.contains('bonus') ||
+        lowerCategory.contains('income') ||
+        lowerCategory.contains('pendapatan')) {
+      return TransactionType.pemasukan;
+    }
+    return TransactionType.pengeluaran;
   }
 }

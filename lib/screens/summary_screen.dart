@@ -4,7 +4,7 @@ import '../models/transaction_model.dart';
 class SummaryScreen extends StatelessWidget {
   final List<TransactionModel> transactions;
 
-  const SummaryScreen({Key? key, required this.transactions}) : super(key: key);
+  const SummaryScreen({super.key, required this.transactions});
 
   @override
   Widget build(BuildContext context) {

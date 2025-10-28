@@ -12,7 +12,7 @@ void main() async {
 }
 
 class ExpenseTrackerApp extends StatelessWidget {
-  const ExpenseTrackerApp({Key? key}) : super(key: key);
+  const ExpenseTrackerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +27,9 @@ class ExpenseTrackerApp extends StatelessWidget {
           secondary: Colors.amber, // Dulu accentColor
         ),
       ),
-      home: HomeScreen(),
+  home: const HomeScreen(),
       // Set default locale ke Indonesia
-      locale: Locale('id', 'ID'), 
+  locale: const Locale('id', 'ID'), 
     );
   }
 } 

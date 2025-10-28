@@ -6,11 +6,11 @@ class BalanceSummary extends StatelessWidget {
   final double totalExpense;
 
   const BalanceSummary({
-    Key? key,
+    super.key,
     required this.totalBalance,
     required this.totalIncome,
     required this.totalExpense,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

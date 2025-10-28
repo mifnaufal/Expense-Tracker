@@ -1,27 +1,25 @@
 // lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
+
 import '../models/transaction_model.dart';
+import '../services/local_storage_service.dart';
 import '../widgets/balance_summary.dart';
 import '../widgets/transaction_card.dart';
 import 'add_transaction_screen.dart';
 import 'summary_screen.dart';
-import '../services/local_storage_service.dart'; // 1. IMPORT SERVICE
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  
-  // 2. Hapus data dummy, ganti dengan list kosong & state loading
   List<TransactionModel> _transactions = [];
   bool _isLoading = true;
-  
-  // Buat instance service
+
   final LocalStorageService _storageService = LocalStorageService();
 
   @override
@@ -31,14 +29,22 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
-  // 4. Buat fungsi async untuk load data
   Future<void> _loadData() async {
-    // Ambil data dari service
-    final loadedTransactions = await _storageService.loadTransactions();
-    
-    // Update state dengan data baru dan matikan loading
     setState(() {
-      _transactions = loadedTransactions;
+      _isLoading = true;
+    });
+
+    final loadedTransactions = await _storageService.readData();
+    if (!mounted) return;
+
+    _setTransactions(loadedTransactions);
+  }
+
+  void _setTransactions(List<TransactionModel> transactions) {
+    final sortedTransactions = List<TransactionModel>.from(transactions)
+      ..sort((a, b) => b.date.compareTo(a.date));
+    setState(() {
+      _transactions = sortedTransactions;
       _isLoading = false;
     });
   }
@@ -60,23 +66,93 @@ class _HomeScreenState extends State<HomeScreen> {
     return _totalIncome - _totalExpense;
   }
 
-  // Update fungsi add transaction untuk memanggil 'save'
-  void _addTransaction(TransactionModel newTx) {
-    setState(() {
-      _transactions.insert(0, newTx);
-    });
-    // Panggil service untuk save (walau belum diimplementasi penuh)
-    _storageService.saveTransactions(_transactions);
+  Future<void> _addTransaction(TransactionModel newTx) async {
+    try {
+      final updatedTransactions = await _storageService.addTransaction(newTx);
+      if (!mounted) return;
+      _setTransactions(updatedTransactions);
+      _showSnackBar('Transaksi berhasil ditambahkan');
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('Gagal menambahkan transaksi: $e');
+      _showSnackBar('Gagal menambahkan transaksi: $e');
+    }
   }
 
   void _navigateToAddScreen() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (ctx) => AddTransactionScreen(
-          onSave: _addTransaction,
+          onSubmit: _addTransaction,
         ),
       ),
     );
+  }
+
+  void _navigateToEditScreen(TransactionModel transaction) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => AddTransactionScreen(
+          initialTransaction: transaction,
+          onSubmit: _editTransaction,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editTransaction(TransactionModel updatedTransaction) async {
+    try {
+      final updatedTransactions = await _storageService.updateTransaction(updatedTransaction);
+      if (!mounted) return;
+      _setTransactions(updatedTransactions);
+      _showSnackBar('Transaksi berhasil diperbarui');
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Gagal memperbarui transaksi');
+    }
+  }
+
+  Future<void> _deleteTransaction(String transactionId) async {
+    try {
+      final updatedTransactions = await _storageService.deleteTransaction(transactionId);
+      if (!mounted) return;
+      _setTransactions(updatedTransactions);
+      _showSnackBar('Transaksi berhasil dihapus');
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Gagal menghapus transaksi');
+    }
+  }
+
+  void _confirmDeleteTransaction(TransactionModel transaction) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Transaksi'),
+        content: Text('Apakah kamu yakin ingin menghapus "${transaction.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await _deleteTransaction(transaction.id);
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message)),
+      );
   }
 
   void _navigateToSummaryScreen() {
@@ -143,7 +219,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       : ListView.builder(
                           itemCount: _transactions.length,
                           itemBuilder: (ctx, index) {
-                            return TransactionCard(transaction: _transactions[index]);
+                            final transaction = _transactions[index];
+                            return TransactionCard(
+                              transaction: transaction,
+                              onEdit: () => _navigateToEditScreen(transaction),
+                              onDelete: () => _confirmDeleteTransaction(transaction),
+                            );
                           },
                         ),
                 ),
@@ -151,8 +232,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddScreen,
-        child: Icon(Icons.add),
         tooltip: 'Tambah Transaksi',
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
