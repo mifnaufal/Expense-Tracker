@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/transaction_model.dart';
 import '../services/local_storage_service.dart';
@@ -124,6 +125,24 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _exportTransactions() async {
+    try {
+      final exportResult = await _storageService.exportTransactions(writeSeedFile: true);
+      if (!mounted) return;
+
+      await Clipboard.setData(ClipboardData(text: exportResult.json));
+
+      final message = exportResult.wroteSeedFile
+          ? 'JSON transaksi diperbarui dan disalin ke clipboard'
+          : 'JSON transaksi disalin ke clipboard';
+      _showSnackBar(message);
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('Gagal mengekspor transaksi: $e');
+      _showSnackBar('Gagal mengekspor transaksi: $e');
+    }
+  }
+
   void _confirmDeleteTransaction(TransactionModel transaction) {
     showDialog<void>(
       context: context,
@@ -173,6 +192,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.bar_chart),
             onPressed: _navigateToSummaryScreen,
             tooltip: 'Ringkasan',
+          ),
+          IconButton(
+            icon: Icon(Icons.download),
+            onPressed: _exportTransactions,
+            tooltip: 'Ekspor JSON',
           ),
         ],
       ),

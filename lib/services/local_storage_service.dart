@@ -92,6 +92,7 @@ class LocalStorageService {
 
       final file = await _getLocalFile();
       await file.writeAsString(jsonString);
+      await _persistSeedAsset(jsonString);
     } catch (e) {
       debugPrint('Error writing transactions: $e');
       rethrow;
@@ -103,6 +104,33 @@ class LocalStorageService {
     final updatedTransactions = [...transactions, transaction];
     await writeData(updatedTransactions);
     return updatedTransactions;
+  }
+
+  Future<({String json, bool wroteSeedFile})> exportTransactions({
+    bool pretty = true,
+    bool writeSeedFile = false,
+  }) async {
+    final transactions = await readData();
+    final jsonReady = transactions.map((tx) => tx.toJson()).toList();
+    final encoder = pretty ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
+    final jsonString = encoder.convert(jsonReady);
+
+    bool wroteFile = false;
+    if (writeSeedFile && !kIsWeb) {
+      final seedFile = File('data/transactions.json');
+      try {
+        if (await seedFile.exists()) {
+          await seedFile.writeAsString(jsonString);
+          wroteFile = true;
+        } else {
+          debugPrint('Seed file not found at ${seedFile.path}. Skipping write.');
+        }
+      } catch (e) {
+        debugPrint('Unable to write seed file: $e');
+      }
+    }
+
+    return (json: jsonString, wroteSeedFile: wroteFile);
   }
 
   Future<List<TransactionModel>> updateTransaction(TransactionModel updatedTransaction) async {
@@ -127,5 +155,20 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> loadTransactions() {
     return readData();
+  }
+
+  Future<void> _persistSeedAsset(String jsonString) async {
+    if (kIsWeb) return;
+
+    final seedFile = File('data/transactions.json');
+    try {
+      if (await seedFile.exists()) {
+        await seedFile.writeAsString(jsonString);
+      } else {
+        debugPrint('Seed data file not found at ${seedFile.path}.');
+      }
+    } catch (e) {
+      debugPrint('Unable to sync seed data file: $e');
+    }
   }
 }
