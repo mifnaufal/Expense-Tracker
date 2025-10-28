@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: _navigateToSummaryScreen,
                         child: Text('Lihat Semua'),
                       )
                     ],

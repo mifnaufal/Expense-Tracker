@@ -51,9 +51,9 @@ class TransactionCard extends StatelessWidget {
           '${transaction.category} • ${DateFormat('d MMM yyyy').format(transaction.date)}',
           style: TextStyle(color: Colors.grey[600]),
         ),
-        trailing: Column(
+        trailing: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               '$prefix ${transaction.amount.toStringAsFixed(0)}',
@@ -63,7 +63,8 @@ class TransactionCard extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
-            if (hasActions)
+            if (hasActions) ...[
+              const SizedBox(width: 4),
               PopupMenuButton<_TransactionMenuAction>(
                 icon: const Icon(Icons.more_vert, size: 20),
                 onSelected: (action) {
@@ -89,6 +90,7 @@ class TransactionCard extends StatelessWidget {
                     ),
                 ],
               ),
+            ]
           ],
         ),
         onTap: () {
