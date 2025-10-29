@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -295,51 +296,70 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
   Widget _buildImagePreview() {
     final Uint8List? bytes =
         _selectedImageBytes ?? widget.initialTransaction?.imageBytes;
-    if (bytes != null) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.memory(bytes, fit: BoxFit.cover),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedImageBytes = null;
-                  _selectedImagePath = null;
-                  _existingImageBase64 = null;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 20),
-              ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.28),
+              width: 1.2,
             ),
           ),
-        ],
-      );
-    }
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 40,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Foto Bukti',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.outline),
-          ),
-        ],
+          child: bytes != null
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.memory(bytes, fit: BoxFit.cover),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedImageBytes = null;
+                            _selectedImagePath = null;
+                            _existingImageBase64 = null;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 40,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Foto Bukti',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,6 @@ import 'summary_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -216,171 +216,241 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? Colors.green.shade400
         : Colors.orange.shade400;
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.colorScheme.background,
-        title: Text(
-          'Expense Tracker',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF4E54C8), Color(0xFF8F94FB)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart_outlined),
-            onPressed: _transactions.isEmpty ? null : _navigateToSummaryScreen,
-            tooltip: 'Ringkasan',
-          ),
-          IconButton(
-            icon: const Icon(Icons.download_outlined),
-            onPressed: _exportTransactions,
-            tooltip: 'Ekspor JSON',
-          ),
-        ],
       ),
-      body: SafeArea(
-        child: _isLoading
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: theme.colorScheme.primary),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Memuat data...',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                color: theme.colorScheme.primary,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                          child: BalanceSummary(
-                            totalBalance: _totalBalance,
-                            totalIncome: _totalIncome,
-                            totalExpense: _totalExpense,
-                          ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: Text(
+            'Expense Tracker',
+            style: GoogleFonts.montserrat(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 24,
+              letterSpacing: 1.2,
+            ),
+          ),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.bar_chart_outlined, color: Colors.white),
+              onPressed: _transactions.isEmpty
+                  ? null
+                  : _navigateToSummaryScreen,
+              tooltip: 'Ringkasan',
+            ),
+            IconButton(
+              icon: const Icon(Icons.download_outlined, color: Colors.white),
+              onPressed: _exportTransactions,
+              tooltip: 'Ekspor JSON',
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: _isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: Colors.white),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Memuat data...',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white70,
                         ),
                       ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Transaksi Terakhir',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  color: Colors.white,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        // Glassmorphism Balance Card
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 18,
+                                  sigmaY: 18,
                                 ),
-                              ),
-                              TextButton.icon(
-                                onPressed: _transactions.isEmpty
-                                    ? null
-                                    : _navigateToSummaryScreen,
-                                icon: const Icon(Icons.arrow_forward, size: 16),
-                                label: const Text('Lihat Semua'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (_transactions.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(24),
+                                child: Container(
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.surface,
-                                    shape: BoxShape.circle,
+                                    color: Colors.white.withOpacity(0.18),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.35),
+                                      width: 1.5,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    Icons.receipt_long_outlined,
-                                    size: 64,
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.5),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: BalanceSummary(
+                                      totalBalance: _totalBalance,
+                                      totalIncome: _totalIncome,
+                                      totalExpense: _totalExpense,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Section Title
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
                                 Text(
-                                  'Belum ada transaksi.',
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.7),
+                                  'Transaksi Terakhir',
+                                  style: GoogleFonts.montserrat(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 18,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tekan tombol + untuk menambahkan transaksi pertama Anda',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.5),
+                                TextButton.icon(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.white24,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: _navigateToAddScreen,
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Tambah Transaksi'),
+                                  onPressed: _transactions.isEmpty
+                                      ? null
+                                      : _navigateToSummaryScreen,
+                                  icon: const Icon(
+                                    Icons.arrow_forward,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Lihat Semua'),
                                 ),
                               ],
                             ),
                           ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                          sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              final transaction = _transactions[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: TransactionCard(
-                                  transaction: transaction,
-                                  onEdit: () =>
-                                      _navigateToEditScreen(transaction),
-                                  onDelete: () =>
-                                      _confirmDeleteTransaction(transaction),
-                                ),
-                              );
-                            }, childCount: _transactions.length),
-                          ),
                         ),
-                    ],
+                        if (_transactions.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.receipt_long_outlined,
+                                      size: 64,
+                                      color: Colors.white.withOpacity(0.7),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Belum ada transaksi.',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tekan tombol + untuk menambahkan transaksi pertama Anda',
+                                    style: GoogleFonts.montserrat(
+                                      color: Colors.white70,
+                                      fontSize: 15,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final transaction = _transactions[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(18),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 14,
+                                        sigmaY: 14,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.16),
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withOpacity(
+                                              0.28,
+                                            ),
+                                            width: 1.2,
+                                          ),
+                                        ),
+                                        child: TransactionCard(
+                                          transaction: transaction,
+                                          onEdit: () => _navigateToEditScreen(
+                                            transaction,
+                                          ),
+                                          onDelete: () =>
+                                              _confirmDeleteTransaction(
+                                                transaction,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }, childCount: _transactions.length),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddScreen,
-        tooltip: 'Tambah Transaksi',
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
-        backgroundColor: balanceColor,
-        foregroundColor: Colors.white,
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _navigateToAddScreen,
+          tooltip: 'Tambah Transaksi',
+          icon: const Icon(Icons.add),
+          label: const Text('Tambah'),
+          backgroundColor: Colors.white.withOpacity(0.22),
+          foregroundColor: Colors.deepPurple,
+          elevation: 8,
+        ),
       ),
     );
   }
