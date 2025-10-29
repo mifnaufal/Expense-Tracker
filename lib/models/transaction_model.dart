@@ -1,8 +1,9 @@
-// lib/models/transaction_model.dart
 
+
+// ignore: unused_import
 import 'dart:io';
 
-// Enum ini tetap kita pakai untuk logic UI (misal warna & ikon)
+
 enum TransactionType {
   pemasukan,
   pengeluaran,
@@ -12,10 +13,10 @@ class TransactionModel {
   final String id;
   final String title;
   final double amount;
-  final String category; // SesuAI JSON: "Makanan", "Transportasi"
+  final String category; 
   final DateTime date;
-  final String? imagePath; // SesuAI JSON: "imagePath": null
-  final TransactionType type; // Ini kita derive dari category
+  final String? imagePath; 
+  final TransactionType type; 
 
   TransactionModel({
     required this.id,
@@ -27,15 +28,13 @@ class TransactionModel {
     required this.type,
   });
 
-  // Factory constructor untuk membuat instance dari Map (JSON)
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     
-    // Tentukan Tipe (pemasukan/pengeluaran) berdasarkan Kategori
-    // Kita buat asumsi di sini
+    
     final String category = json['category'];
-    TransactionType derivedType = TransactionType.pengeluaran; // Default pengeluaran
+    TransactionType derivedType = TransactionType.pengeluaran; 
 
-    // Tambahkan kategori lain yang termasuk pemasukan
     if (category.toLowerCase() == 'gaji' || category.toLowerCase() == 'bonus') {
       derivedType = TransactionType.pemasukan;
     }
@@ -43,25 +42,22 @@ class TransactionModel {
     return TransactionModel(
       id: json['id'],
       title: json['title'],
-      amount: (json['amount'] as num).toDouble(), // Konversi aman dari int/double
+      amount: (json['amount'] as num).toDouble(), 
       category: category,
-      date: DateTime.parse(json['date']), // Parsing string tanggal ISO 8601
+      date: DateTime.parse(json['date']), 
       imagePath: json['imagePath'],
-      type: derivedType, // Masukkan tipe yang sudah kita tentukan
+      type: derivedType, 
     );
   }
 
-  // Method untuk konversi instance ke Map (JSON)
-  // (Berguna saat nanti mengimplementasikan 'save')
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'amount': amount,
       'category': category,
-      'date': date.toIso8601String(), // Simpan sebagai string ISO 8601
+      'date': date.toIso8601String(), 
       'imagePath': imagePath,
-      // 'type' tidak perlu disimpan karena di-derive dari 'category'
     };
   }
 }

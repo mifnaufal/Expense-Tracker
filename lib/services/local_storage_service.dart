@@ -3,15 +3,13 @@
 import 'dart:convert'; // Untuk json.decode
 import 'package:flutter/services.dart' show rootBundle; // Untuk baca asset
 import '../models/transaction_model.dart';
-// import 'dart:io'; // (Dibutuhkan nanti untuk 'save')
-// import 'package:path_provider/path_provider.dart'; // (Dibutuhkan nanti untuk 'save')
 
 class LocalStorageService {
   
   // Path ke file asset JSON
   final String _transactionsAssetPath = 'data/transactions.json';
 
-  /// Membaca daftar transaksi dari file 'data/transactions.json' di assets.
+ 
   Future<List<TransactionModel>> loadTransactions() async {
     try {
       // 1. Baca file JSON sebagai String dari assets
@@ -34,11 +32,9 @@ class LocalStorageService {
     }
   }
 
-  /// Menyimpan daftar transaksi ke device storage.
-  /// (Belum diimplementasi penuh)
+ 
   Future<void> saveTransactions(List<TransactionModel> transactions) async {
-    // PENTING: Kita tidak bisa MENULIS KEMBALI ke folder 'assets'.
-    // 'Assets' bersifat read-only setelah aplikasi di-build.
+  
     
     // TODO: Implementasi penyimpanan ke device.
     // 1. Dapatkan path direktori dokumen aplikasi (pakai package 'path_provider')
