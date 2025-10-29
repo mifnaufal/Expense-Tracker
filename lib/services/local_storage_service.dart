@@ -82,8 +82,7 @@ class LocalStorageService {
 
   Future<void> writeData(List<TransactionModel> transactions) async {
     try {
-      final jsonList = transactions.map((tx) => tx.toJson()).toList();
-      final jsonString = json.encode(jsonList);
+      final jsonString = _encodeTransactions(transactions);
 
       if (kIsWeb) {
         await _writeToWebStorage(jsonString);
@@ -111,9 +110,7 @@ class LocalStorageService {
     bool writeSeedFile = false,
   }) async {
     final transactions = await readData();
-    final jsonReady = transactions.map((tx) => tx.toJson()).toList();
-    final encoder = pretty ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
-    final jsonString = encoder.convert(jsonReady);
+    final jsonString = _encodeTransactions(transactions, pretty: pretty);
 
     bool wroteFile = false;
     if (writeSeedFile && !kIsWeb) {
@@ -170,5 +167,13 @@ class LocalStorageService {
     } catch (e) {
       debugPrint('Unable to sync seed data file: $e');
     }
+  }
+
+  String _encodeTransactions(List<TransactionModel> transactions, {bool pretty = false}) {
+    final sortedTransactions = List<TransactionModel>.from(transactions)
+      ..sort((a, b) => a.date.compareTo(b.date));
+    final jsonList = sortedTransactions.map((tx) => tx.toJson()).toList();
+    final encoder = pretty ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
+    return encoder.convert(jsonList);
   }
 }
