@@ -1,8 +1,5 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
-import 'dart:convert';
+import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -47,7 +44,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   TransactionType _selectedType = TransactionType.pengeluaran;
   DateTime _selectedDate = DateTime.now();
   File? _selectedImage;
-  Uint8List? _webImageBytes;
   String? _existingImagePath;
   bool _isSubmitting = false;
   late String _selectedCategory;
@@ -119,20 +115,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         maxWidth: 600,
       );
       if (pickedFile != null) {
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-          setState(() {
-            _webImageBytes = bytes;
-            _selectedImage = null;
-            _existingImagePath = 'data:image/png;base64,${base64Encode(bytes)}';
-          });
-        } else {
-          setState(() {
-            _selectedImage = File(pickedFile.path);
-            _webImageBytes = null;
-            _existingImagePath = pickedFile.path;
-          });
-        }
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+          _existingImagePath = null;
+        });
       }
     } catch (e) {
       if (!mounted) return;
@@ -173,44 +159,41 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildImagePreview() {
-    if (kIsWeb && _webImageBytes != null) {
-      return Image.memory(
-        _webImageBytes!,
-        fit: BoxFit.cover,
-      );
-    }
-
     if (_selectedImage != null) {
       return Image.file(
         _selectedImage!,
         fit: BoxFit.cover,
       );
     }
-
     if (_existingImagePath != null && _existingImagePath!.isNotEmpty) {
-      if (kIsWeb && _existingImagePath!.startsWith('data:image')) {
-        return Image.network(_existingImagePath!);
-      }
-
       final file = File(_existingImagePath!);
       if (file.existsSync()) {
-        return Image.file(file, fit: BoxFit.cover);
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+        );
       }
     }
-
     return const Center(
-      child: Text('Foto Bukti'),
+      child: Text(
+        'Foto Bukti',
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
   Future<void> _submitData() async {
     if (_isSubmitting) return;
-    if (!_formKey.currentState!.validate()) return;
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     final String title = _titleController.text.trim();
     final double amount = double.tryParse(_amountController.text) ?? 0.0;
-    final String category =
-        _isCustomCategory ? _customCategoryController.text.trim() : _selectedCategory;
+    final String category = _isCustomCategory
+        ? _customCategoryController.text.trim()
+        : _selectedCategory;
 
     if (title.isEmpty || amount <= 0 || category.isEmpty) {
       return;
@@ -228,7 +211,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       category: category,
       date: _selectedDate,
       type: _selectedType,
-      imagePath: _existingImagePath,
+      imagePath: _selectedImage?.path ?? _existingImagePath,
     );
 
     setState(() {
@@ -298,13 +281,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Jumlah tidak boleh kosong';
+                    return 'Jumlah tidak boleh kosong >:( )';
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
+                    return 'Masukkan angka yang valid >:( )';
                   }
                   if (double.parse(value) <= 0) {
-                    return 'Jumlah harus lebih besar dari 0';
+                    return 'Jumlah harus lebih besar dari 0 >:( )';
                   }
                   return null;
                 },
@@ -346,7 +329,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   validator: (value) {
                     if (_isCustomCategory && (value == null || value.trim().isEmpty)) {
-                      return 'Silakan isi kategori lainnya';
+                      return 'Silakan isi kategori lainnya 😁';
                     }
                     return null;
                   },
@@ -362,12 +345,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: TransactionType.pengeluaran,
-                    child: Text('Pengeluaran'),
-                  ),
-                  DropdownMenuItem(
                     value: TransactionType.pemasukan,
                     child: Text('Pemasukan'),
+                  ),
+                  DropdownMenuItem(
+                    value: TransactionType.pengeluaran,
+                    child: Text('Pengeluaran'),
                   ),
                 ],
                 onChanged: (value) {

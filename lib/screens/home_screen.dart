@@ -69,10 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _addTransaction(TransactionModel newTx) async {
     try {
-      final updatedTransactions = await _storageService.addTransaction(newTx);
+      final result = await _storageService.addTransaction(newTx);
       if (!mounted) return;
-      _setTransactions(updatedTransactions);
-      _showSnackBar('Transaksi berhasil ditambahkan');
+      _setTransactions(result.transactions);
+      _showPersistenceFeedback('Transaksi berhasil ditambahkan', result.storagePath);
     } catch (e) {
       if (!mounted) return;
       debugPrint('Gagal menambahkan transaksi: $e');
@@ -103,10 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _editTransaction(TransactionModel updatedTransaction) async {
     try {
-      final updatedTransactions = await _storageService.updateTransaction(updatedTransaction);
+      final result = await _storageService.updateTransaction(updatedTransaction);
       if (!mounted) return;
-      _setTransactions(updatedTransactions);
-      _showSnackBar('Transaksi berhasil diperbarui');
+      _setTransactions(result.transactions);
+      _showPersistenceFeedback('Transaksi berhasil diperbarui', result.storagePath);
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Gagal memperbarui transaksi');
@@ -115,10 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _deleteTransaction(String transactionId) async {
     try {
-      final updatedTransactions = await _storageService.deleteTransaction(transactionId);
+      final result = await _storageService.deleteTransaction(transactionId);
       if (!mounted) return;
-      _setTransactions(updatedTransactions);
-      _showSnackBar('Transaksi berhasil dihapus');
+      _setTransactions(result.transactions);
+      _showPersistenceFeedback('Transaksi berhasil dihapus', result.storagePath);
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Gagal menghapus transaksi');
@@ -127,15 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _exportTransactions() async {
     try {
-      final exportResult = await _storageService.exportTransactions(writeSeedFile: true);
+      final exportResult = await _storageService.exportTransactions();
       if (!mounted) return;
 
-      await Clipboard.setData(ClipboardData(text: exportResult.json));
-
-      final message = exportResult.wroteSeedFile
-          ? 'JSON transaksi diperbarui dan disalin ke clipboard'
-          : 'JSON transaksi disalin ke clipboard';
-      _showSnackBar(message);
+      await Clipboard.setData(ClipboardData(text: exportResult.payload));
+      _showSnackBar('Data transaksi disalin ke clipboard');
+      debugPrint('Lokasi penyimpanan saat ini: ${exportResult.storagePath}');
     } catch (e) {
       if (!mounted) return;
       debugPrint('Gagal mengekspor transaksi: $e');
@@ -172,6 +169,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ..showSnackBar(
         SnackBar(content: Text(message)),
       );
+  }
+
+  void _showPersistenceFeedback(String baseMessage, String storagePath) {
+    _showSnackBar('$baseMessage (tersimpan lokal)');
+    debugPrint('Data disimpan di: $storagePath');
   }
 
   void _navigateToSummaryScreen() {

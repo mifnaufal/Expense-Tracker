@@ -1,7 +1,10 @@
-import 'dart:io' show File;
-import 'package:flutter/foundation.dart' show kIsWeb;
+// lib/widgets/transaction_card.dart
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/transaction_model.dart';
 
 enum _TransactionMenuAction { edit, delete }
@@ -20,11 +23,11 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... (logic warna dan ikon tidak berubah) ...
     final bool isExpense = transaction.type == TransactionType.pengeluaran;
     final Color amountColor = isExpense ? Colors.red : Colors.green;
-    final IconData iconData = isExpense
-        ? Icons.arrow_downward
-        : Icons.arrow_upward;
+    final IconData iconData =
+        isExpense ? Icons.arrow_downward : Icons.arrow_upward;
     final String prefix = isExpense ? '- Rp' : '+ Rp';
     final bool hasActions = onEdit != null || onDelete != null;
 
@@ -33,13 +36,18 @@ class TransactionCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: amountColor.withValues(alpha: 0.1),
-          child: Icon(iconData, color: amountColor, size: 24),
+          child: Icon(
+            iconData,
+            color: amountColor,
+            size: 24,
+          ),
         ),
         title: Text(
-          transaction.title,
+          transaction.title, // 'Makan Siang'
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
+          // Gunakan category jika ingin, atau tetap tanggal
           '${transaction.category} • ${DateFormat('d MMM yyyy').format(transaction.date)}',
           style: TextStyle(color: Colors.grey[600]),
         ),
@@ -82,78 +90,46 @@ class TransactionCard extends StatelessWidget {
                     ),
                 ],
               ),
-            ],
+            ]
           ],
         ),
-
         onTap: () {
-          final imagePath = transaction.imagePath;
+          // --- PERUBAHAN DI SINI ---
+          // Cek 'imagePath' (String), bukan 'imageFile' (File)
+          if (transaction.imagePath != null && transaction.imagePath!.isNotEmpty) {
+            
+            // Asumsi: imagePath adalah path file di device
+            final File imageFile = File(transaction.imagePath!);
 
-          if (imagePath != null && imagePath.isNotEmpty) {
-            if (kIsWeb) {
+            // Cek apakah file-nya ada sebelum ditampilkan
+            if (imageFile.existsSync()) {
               showDialog(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Bukti Transaksi'),
-                  content: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Text('Tidak bisa menampilkan gambar di web.'),
-                    ),
-                  ),
+                  content: Image.file(imageFile),
+                  title: const Text("Bukti Transaksi"),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Tutup'),
-                    ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    )
                   ],
                 ),
               );
             } else {
-              final file = File(imagePath);
-              if (file.existsSync()) {
-                showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text('Bukti Transaksi'),
-                    content: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(file, fit: BoxFit.cover),
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'File gambar tidak ditemukan di path: ${transaction.imagePath}',
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Tutup'),
-                      ),
-                    ],
                   ),
                 );
-              } else {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Gambar tidak ditemukan di penyimpanan perangkat.',
-                      ),
-                    ),
-                  );
-              }
             }
-          } else {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                const SnackBar(
-                  content: Text('Transaksi ini tidak memiliki foto bukti.'),
-                ),
-              );
           }
+          // Jika imagePath null (seperti di JSON kamu), tidak terjadi apa-apa
         },
-
         onLongPress: onEdit,
       ),
     );
