@@ -84,7 +84,6 @@ class SummaryScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               )
-              // (Opsional: Tambahkan package 'charts_flutter' untuk grafik)
             ],
           ),
         ),
