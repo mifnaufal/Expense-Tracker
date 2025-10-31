@@ -1,77 +1,114 @@
 # Expense Tracker
 
-A Flutter learning project for tracking income and expenses with a lightweight
-file-based persistence layer. The app now supports a local [Shelf](https://pub.dev/packages/shelf)
-backend so that every CRUD operation writes to the repository's
-`data/transactions.store`, even when running in the browser.
+Aplikasi pembelajaran Flutter untuk mencatat pemasukan dan pengeluaran. Data disimpan dalam berkas di dalam proyek, dan Shelf backend lokal memastikan setiap operasi CRUD (buat, baca, ubah, hapus) tersinkronisasi baik di platform mobile maupun web.
 
-## Project layout
+## Prasyarat
 
-- `lib/` – Flutter application code.
-- `data/transactions.store` – serialized transactions (Base64/pipe-delimited).
-- `backend/` & `tools/backend/` – minimal Shelf servers for local storage.
-- `tool/dev_launcher.dart` – helper for starting the backend and Flutter app together.
+- Flutter SDK 3.19 atau lebih baru (otomatis menyertakan Dart 3.3+).
+- Git terpasang pada sistem.
+- Terminal PowerShell (Windows) atau shell sejenis.
+- Browser modern (Chrome direkomendasikan) bila ingin menjalankan mode web.
 
-## Prerequisites
+## Langkah Menjalankan Proyek (setelah clone)
 
-- Flutter SDK 3.19+ (with Dart 3.3+).
-- Dart & Flutter CLI available on your `PATH`.
+## Untuk langkah simpelnya, bisa scroll sampai bawah ya :))))
 
-## Quick start (auto backend)
+1. **Clone repository dan masuk ke folder proyek**
 
-```powershell
-flutter pub get
-dart run tool/dev_launcher.dart
-```
+   ```powershell
+   git clone https://github.com/mifnaufal/Expense-Tracker.git
+   cd Expense-Tracker
+   ```
 
-The launcher will:
+2. **Pasang seluruh dependency Flutter**
 
-1. Check whether the Shelf backend is already listening on `http://localhost:8080`.
-2. Start it automatically if needed and wait until `/health` responds.
-3. Run `flutter run -d chrome --dart-define=EXPENSE_BACKEND_URL=http://localhost:8080`.
+   ```powershell
+   flutter pub get
+   ```
 
-Use common `flutter run` arguments after the launcher command. They are passed
-straight through to Flutter:
+3. **Jalankan backend + aplikasi secara otomatis**
 
-```powershell
-dart run tool/dev_launcher.dart -d chrome --web-renderer html
-```
+   ```powershell
+   dart run tool/dev_launcher.dart
+   ```
 
-### Useful switches
+   Perintah ini akan:
 
-- `--backend-port <port>` – override the port (applies to both backend and the
-  generated `--dart-define`).
-- `--skip-flutter` – only start/ensure the backend; useful when you want to run
-  multiple Flutter commands from other terminals.
+   - Mengecek apakah backend Shelf sudah aktif di `http://localhost:8080`.
+   - Menyalakannya bila belum ada, lalu menunggu hingga endpoint `/health` siap.
+   - Menjalankan `flutter run -d chrome` dengan `--dart-define=EXPENSE_BACKEND_URL=http://localhost:8080`.
 
-When finished, press `q` or `CTRL+C` in the Flutter terminal; the helper will
-shut down the backend automatically.
+   Setelah Flutter berjalan, tekan `r` untuk hot reload, `R` untuk hot restart, dan `q` atau `CTRL+C` untuk keluar. Launcher akan mematikan backend secara otomatis saat Anda menghentikan Flutter.
 
-## Manual backend control
+4. **Menyesuaikan parameter (opsional)**
 
-You can still manage the backend yourself if you prefer:
+   Tambahkan argumen setelah `--` untuk meneruskan opsi apa pun ke `flutter run`. Contoh memaksa web server:
+
+   ```powershell
+   dart run tool/dev_launcher.dart -- -d web-server
+   ```
+
+   Opsi lain yang tersedia:
+
+   - `--backend-port <port>`: mengganti port backend (mis. `--backend-port 9090`).
+   - `--skip-flutter`: hanya menyalakan backend tanpa menjalankan Flutter (berguna bila ingin membuka beberapa terminal).
+
+## Menjalankan Backend & Flutter Secara Manual (alternatif)
+
+Jika ingin mengelola backend sendiri:
 
 ```powershell
 cd backend
+dart pub get
 dart run bin/server.dart --port 8080
 ```
 
-Then launch Flutter with the matching define:
+Biarkan proses tersebut aktif. Pada terminal baru, jalankan Flutter dengan `dart-define` yang sesuai:
 
 ```powershell
 flutter run -d chrome --dart-define=EXPENSE_BACKEND_URL=http://localhost:8080
 ```
 
-## Tests
+## Struktur Folder Penting
+
+- `lib/` – kode utama aplikasi Flutter.
+- `data/transactions.store` – berkas utama penyimpanan transaksi (format Base64 + pemisah pipa).
+- `data/transactions.json` – data awal (seed) yang dimuat saat berkas utama kosong.
+- `backend/` – proyek Shelf sederhana yang melayani permintaan CRUD.
+- `tools/backend/` – varian backend untuk kebutuhan pengembangan.
+- `tool/dev_launcher.dart` – skrip helper untuk menyalakan backend dan Flutter sekaligus.
+
+## Lokasi Penyimpanan Data
+
+Semua perubahan transaksi akan tersimpan ke `data/transactions.store` di dalam root proyek. Anda dapat meng-commit berkas ini untuk membagikan data contoh ke rekan lain.
+
+## Menjalankan Tes
 
 ```powershell
 flutter test
 ```
 
-## Troubleshooting
+## Tips Troubleshooting
 
-- If the launcher reports "backend failed to start", check that port 8080 (or
-  your override) is free.
-- For web builds, ensure Chrome allows requests to `http://localhost:<port>`.
-- The serialized store is human-readable; commit it if you want seeded data in
-  version control.
+- Jika launcher gagal menyalakan backend, pastikan port 8080 (atau port kustom Anda) tidak dipakai aplikasi lain.
+- Untuk mode web, pastikan browser mengizinkan akses ke `http://localhost:<port>`.
+- Backend menulis log ke terminal dengan prefix `[backend]`; periksa bila terjadi error saat menyimpan data.
+- Hapus `data/transactions.store` bila ingin mengulang data ke kondisi awal (seed dari `data/transactions.json`).
+
+### Alternatif
+
+Ini untuk para pengguna yang gak mau baca semuanya :)
+
+step-by-step:
+
+- flutter pub get
+- flutter pub upgrade --major-versions
+- cd backend (pastikan udah didalam projectnya rootnya)
+- dart pub get
+- dart run bin/server.dart
+- buat terminal baru/keluar dari folder backend
+- flutter run -d chrome (atau yang biasa kamu pake buat ngerun flutter)
+
+note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5
+
+jadi deh :D
