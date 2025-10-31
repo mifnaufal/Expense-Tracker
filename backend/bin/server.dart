@@ -11,8 +11,8 @@ const _dataFileRelative = 'data/transactions.store';
 Future<void> main(List<String> args) async {
   final ip = InternetAddress.anyIPv4;
   final port = int.tryParse(_readArg(args, '--port') ?? '') ??
-      int.tryParse(Platform.environment['PORT'] ?? '') ??
-      8080;
+    int.tryParse(Platform.environment['PORT'] ?? '') ??
+    1234;
 
   final router = Router()
     ..get('/health', _handleHealth)

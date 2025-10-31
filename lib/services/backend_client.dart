@@ -21,7 +21,7 @@ class BackendClient {
     return BackendClient(resolved, client: client);
   }
 
-  static const String _defaultUrl = 'http://localhost:8080';
+  static const String _defaultUrl = 'http://localhost:1234';
 
   final String baseUrl;
   final http.Client _client;

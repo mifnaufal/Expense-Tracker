@@ -11,7 +11,7 @@ dart pub get --directory backend
 dart run backend/bin/server.dart
 ```
 
-The server listens on port `8080` by default. Override by setting the `PORT`
+The server listens on port `1234` by default. Override by setting the `PORT`
 environment variable.
 
 ## Endpoints

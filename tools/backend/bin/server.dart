@@ -10,7 +10,7 @@ const _dataFileRelative = 'data/transactions.store';
 
 Future<void> main(List<String> args) async {
   final ip = InternetAddress.loopbackIPv4;
-  final port = int.tryParse(_readArg(args, '--port') ?? '') ?? 8080;
+  final port = int.tryParse(_readArg(args, '--port') ?? '') ?? 1234;
 
   final router = Router()
     ..get('/health', _handleHealth)

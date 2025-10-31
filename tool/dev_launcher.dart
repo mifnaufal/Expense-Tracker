@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-const _defaultPort = 8080;
+const _defaultPort = 1234;
 const _backendEntry = 'backend/bin/server.dart';
 const _healthPath = '/health';
 const _backendDefineKey = 'EXPENSE_BACKEND_URL';

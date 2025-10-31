@@ -34,9 +34,9 @@ Aplikasi pembelajaran Flutter untuk mencatat pemasukan dan pengeluaran. Data dis
 
    Perintah ini akan:
 
-   - Mengecek apakah backend Shelf sudah aktif di `http://localhost:8080`.
+   - Mengecek apakah backend Shelf sudah aktif di `http://localhost:1234`.
    - Menyalakannya bila belum ada, lalu menunggu hingga endpoint `/health` siap.
-   - Menjalankan `flutter run -d chrome` dengan `--dart-define=EXPENSE_BACKEND_URL=http://localhost:8080`.
+   - Menjalankan `flutter run -d chrome` dengan `--dart-define=EXPENSE_BACKEND_URL=http://localhost:1234`.
 
    Setelah Flutter berjalan, tekan `r` untuk hot reload, `R` untuk hot restart, dan `q` atau `CTRL+C` untuk keluar. Launcher akan mematikan backend secara otomatis saat Anda menghentikan Flutter.
 
@@ -60,13 +60,13 @@ Jika ingin mengelola backend sendiri:
 ```powershell
 cd backend
 dart pub get
-dart run bin/server.dart --port 8080
+dart run bin/server.dart --port 1234
 ```
 
 Biarkan proses tersebut aktif. Pada terminal baru, jalankan Flutter dengan `dart-define` yang sesuai:
 
 ```powershell
-flutter run -d chrome --dart-define=EXPENSE_BACKEND_URL=http://localhost:8080
+flutter run -d chrome --dart-define=EXPENSE_BACKEND_URL=http://localhost:1234
 ```
 
 ## Struktur Folder Penting
@@ -90,7 +90,7 @@ flutter test
 
 ## Tips Troubleshooting
 
-- Jika launcher gagal menyalakan backend, pastikan port 8080 (atau port kustom Anda) tidak dipakai aplikasi lain.
+- Jika launcher gagal menyalakan backend, pastikan port 1234 (atau port kustom Anda) tidak dipakai aplikasi lain.
 - Untuk mode web, pastikan browser mengizinkan akses ke `http://localhost:<port>`.
 - Backend menulis log ke terminal dengan prefix `[backend]`; periksa bila terjadi error saat menyimpan data.
 - Hapus `data/transactions.store` bila ingin mengulang data ke kondisi awal (seed dari `data/transactions.json`).
@@ -111,4 +111,4 @@ step-by-step:
 
 note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5
 
-jadi deh :D
+note 2: kalau ada error, pake flutter analyze dan kasih ai :) jika analyzenya oke tapi commandnya error gak tau dah tu
