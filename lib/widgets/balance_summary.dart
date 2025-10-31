@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class BalanceSummary extends StatelessWidget {
   final double totalBalance;
@@ -6,14 +7,24 @@ class BalanceSummary extends StatelessWidget {
   final double totalExpense;
 
   const BalanceSummary({
-    Key? key,
+    super.key,
     required this.totalBalance,
     required this.totalIncome,
     required this.totalExpense,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
+    final String balanceText = currencyFormatter.format(totalBalance);
+    final String incomeText = currencyFormatter.format(totalIncome);
+    final String expenseText = currencyFormatter.format(totalExpense);
+
     return Card(
       elevation: 4.0,
       margin: const EdgeInsets.all(16.0),
@@ -31,7 +42,7 @@ class BalanceSummary extends StatelessWidget {
             ),
             SizedBox(height: 8.0),
             Text(
-              'Rp ${totalBalance.toStringAsFixed(0)}',
+              balanceText,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -40,17 +51,28 @@ class BalanceSummary extends StatelessWidget {
             ),
             SizedBox(height: 20.0),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildIncomeExpenseColumn(
-                  'Pemasukan',
-                  'Rp ${totalIncome.toStringAsFixed(0)}',
-                  Colors.green,
+                Expanded(
+                  child: _buildIncomeExpenseColumn(
+                    'Pemasukan',
+                    incomeText,
+                    Colors.green,
+                    alignment: CrossAxisAlignment.start,
+                    textAlign: TextAlign.left,
+                    headerAlignment: MainAxisAlignment.start,
+                  ),
                 ),
-                _buildIncomeExpenseColumn(
-                  'Pengeluaran',
-                  'Rp ${totalExpense.toStringAsFixed(0)}',
-                  Colors.red,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildIncomeExpenseColumn(
+                    'Pengeluaran',
+                    expenseText,
+                    Colors.red,
+                    alignment: CrossAxisAlignment.end,
+                    textAlign: TextAlign.right,
+                    headerAlignment: MainAxisAlignment.end,
+                  ),
                 ),
               ],
             ),
@@ -60,11 +82,19 @@ class BalanceSummary extends StatelessWidget {
     );
   }
 
-  Widget _buildIncomeExpenseColumn(String title, String amount, Color color) {
+  Widget _buildIncomeExpenseColumn(
+    String title,
+    String amount,
+    Color color, {
+    CrossAxisAlignment alignment = CrossAxisAlignment.start,
+    TextAlign textAlign = TextAlign.left,
+    MainAxisAlignment headerAlignment = MainAxisAlignment.start,
+  }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: alignment,
       children: [
         Row(
+          mainAxisAlignment: headerAlignment,
           children: [
             Icon(
               title == 'Pemasukan'
@@ -88,6 +118,8 @@ class BalanceSummary extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: color,
           ),
+          textAlign: textAlign,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

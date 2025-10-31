@@ -1,18 +1,29 @@
 [
   {
-    "id": "1",
-    "title": "Makan Siang",
-    "amount": 45000,
-    "category": "Makanan",
-    "date": "2025-10-27T12:00:00",
-    "imagePath": null
-  },
-  {
     "id": "2",
     "title": "Transportasi",
     "amount": 20000,
     "category": "Transport",
-    "date": "2025-10-26T09:00:00",
-    "imagePath": null
+    "date": "2025-10-26T09:00:00.000",
+    "imagePath": null,
+    "type": "pengeluaran"
+  },
+  {
+    "id": "1761613899540",
+    "title": "test",
+    "amount": 30000,
+    "category": "Tagihan",
+    "date": "2025-10-28T08:11:17.337",
+    "imagePath": null,
+    "type": "pengeluaran"
+  },
+  {
+    "id": "1761615107615",
+    "title": "Moneeyy",
+    "amount": 250000,
+    "category": "Gaji",
+    "date": "2025-10-28T08:31:33.993",
+    "imagePath": null,
+    "type": "pemasukan"
   }
 ]

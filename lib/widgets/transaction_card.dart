@@ -1,14 +1,25 @@
 // lib/widgets/transaction_card.dart
 
-import 'dart:io'; // <-- Tambahkan import ini
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/transaction_model.dart';
+
+enum _TransactionMenuAction { edit, delete }
 
 class TransactionCard extends StatelessWidget {
   final TransactionModel transaction;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const TransactionCard({Key? key, required this.transaction}) : super(key: key);
+  const TransactionCard({
+    super.key,
+    required this.transaction,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +29,13 @@ class TransactionCard extends StatelessWidget {
     final IconData iconData =
         isExpense ? Icons.arrow_downward : Icons.arrow_upward;
     final String prefix = isExpense ? '- Rp' : '+ Rp';
+    final bool hasActions = onEdit != null || onDelete != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: amountColor.withOpacity(0.1),
+          backgroundColor: amountColor.withValues(alpha: 0.1),
           child: Icon(
             iconData,
             color: amountColor,
@@ -32,20 +44,54 @@ class TransactionCard extends StatelessWidget {
         ),
         title: Text(
           transaction.title, // 'Makan Siang'
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           // Gunakan category jika ingin, atau tetap tanggal
           '${transaction.category} • ${DateFormat('d MMM yyyy').format(transaction.date)}',
           style: TextStyle(color: Colors.grey[600]),
         ),
-        trailing: Text(
-          '$prefix ${transaction.amount.toStringAsFixed(0)}',
-          style: TextStyle(
-            color: amountColor,
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              '$prefix ${transaction.amount.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: amountColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+            if (hasActions) ...[
+              const SizedBox(width: 4),
+              PopupMenuButton<_TransactionMenuAction>(
+                icon: const Icon(Icons.more_vert, size: 20),
+                onSelected: (action) {
+                  switch (action) {
+                    case _TransactionMenuAction.edit:
+                      onEdit?.call();
+                      break;
+                    case _TransactionMenuAction.delete:
+                      onDelete?.call();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (onEdit != null)
+                    const PopupMenuItem<_TransactionMenuAction>(
+                      value: _TransactionMenuAction.edit,
+                      child: Text('Edit'),
+                    ),
+                  if (onDelete != null)
+                    const PopupMenuItem<_TransactionMenuAction>(
+                      value: _TransactionMenuAction.delete,
+                      child: Text('Hapus'),
+                    ),
+                ],
+              ),
+            ]
+          ],
         ),
         onTap: () {
           // --- PERUBAHAN DI SINI ---
@@ -61,22 +107,30 @@ class TransactionCard extends StatelessWidget {
                 context: context,
                 builder: (_) => AlertDialog(
                   content: Image.file(imageFile),
-                  title: Text("Bukti Transaksi"),
+                  title: const Text("Bukti Transaksi"),
                   actions: [
                     TextButton(
-                      child: Text('Tutup'),
+                      child: const Text('Tutup'),
                       onPressed: () => Navigator.of(context).pop(),
                     )
                   ],
                 ),
               );
             } else {
-              print("File gambar tidak ditemukan di path: ${transaction.imagePath}");
-              // (Opsional: Tampilkan snackbar error)
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'File gambar tidak ditemukan di path: ${transaction.imagePath}',
+                    ),
+                  ),
+                );
             }
           }
           // Jika imagePath null (seperti di JSON kamu), tidak terjadi apa-apa
         },
+        onLongPress: onEdit,
       ),
     );
   }
