@@ -105,7 +105,7 @@ step-by-step:
 - flutter pub upgrade --major-versions
 - cd backend (pastikan udah didalam projectnya rootnya)
 - dart pub get
-- dart run bin/server.dart
+- dart run bin/server.dart <-- (SEKALI AJA)
 - buat terminal baru/keluar dari folder backend
 - flutter run -d chrome (atau yang biasa kamu pake buat ngerun flutter)
 

@@ -27,15 +27,25 @@ class BackendClient {
   final http.Client _client;
 
   bool? _available;
+  DateTime? _lastHealthCheck;
+  static const Duration _healthCacheDuration = Duration(seconds: 2);
   String? _lastStoragePath;
 
   String get storagePath => _lastStoragePath ?? Uri.parse(baseUrl).toString();
 
   Future<bool> get isAvailable async {
-    if (_available != null) {
-      return _available!;
+    final now = DateTime.now();
+    if (_lastHealthCheck != null && _available != null) {
+      final age = now.difference(_lastHealthCheck!);
+      if (age < _healthCacheDuration) {
+        return _available!;
+      }
     }
 
+    return _awaitHealthCheck();
+  }
+
+  Future<bool> _awaitHealthCheck() async {
     try {
       final response = await _client
           .get(Uri.parse('$baseUrl/health'))
@@ -45,8 +55,8 @@ class BackendClient {
       debugPrint('Backend health check failed: $e');
       _available = false;
     }
-
-    return _available!;
+    _lastHealthCheck = DateTime.now();
+    return _available ?? false;
   }
 
   Future<String?> fetchTransactions() async {
@@ -63,6 +73,7 @@ class BackendClient {
       }
     } catch (e) {
       debugPrint('Backend fetch failed: $e');
+      _available = null;
     }
 
     return null;
@@ -91,6 +102,7 @@ class BackendClient {
       }
     } catch (e) {
       debugPrint('Backend write failed: $e');
+      _available = null;
     }
 
     return null;
