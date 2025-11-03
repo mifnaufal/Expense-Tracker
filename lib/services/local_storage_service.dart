@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -66,7 +67,7 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> readData() async {
     try {
-      final backendPayload = await _backendClient?.fetchTransactions();
+  final backendPayload = await _fetchBackendPayload();
       if (backendPayload != null) {
         if (backendPayload.trim().isEmpty) {
           final seedTransactions = await _loadSeedTransactions();
@@ -149,6 +150,32 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> loadTransactions() {
     return readData();
+  }
+
+  Future<String?> _fetchBackendPayload() async {
+    if (!_backendEnabled) {
+      return null;
+    }
+
+    const attemptDelays = <Duration>[
+      Duration.zero,
+      Duration(milliseconds: 250),
+      Duration(milliseconds: 600),
+      Duration(milliseconds: 1200),
+    ];
+
+    for (final delay in attemptDelays) {
+      if (delay > Duration.zero) {
+        await Future.delayed(delay);
+      }
+
+      final payload = await _backendClient!.fetchTransactions();
+      if (payload != null) {
+        return payload;
+      }
+    }
+
+    return null;
   }
 
   Future<({String payload, String storagePath})> exportTransactions() async {
@@ -265,6 +292,7 @@ class LocalStorageService {
           (value) => value.name == typeString,
           orElse: () => TransactionType.pengeluaran,
         );
+        final imageBase64 = parts.length >= 8 ? _decodeField(parts[7]) : '';
 
         transactions.add(
           TransactionModel(
@@ -274,6 +302,7 @@ class LocalStorageService {
             category: category,
             date: date,
             imagePath: imagePathRaw.isEmpty ? null : imagePathRaw,
+            imageBase64: imageBase64.isEmpty ? null : imageBase64,
             type: type,
           ),
         );
@@ -302,6 +331,7 @@ class LocalStorageService {
       _encodeField(transaction.date.toIso8601String()),
       _encodeField(transaction.imagePath ?? ''),
       _encodeField(transaction.type.name),
+      _encodeField(transaction.imageBase64 ?? ''),
     ];
 
     return fields.join('|');

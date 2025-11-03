@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 enum TransactionType { pemasukan, pengeluaran }
 
 class TransactionModel {
@@ -7,6 +10,7 @@ class TransactionModel {
   final String category;
   final DateTime date;
   final String? imagePath;
+  final String? imageBase64;
   final TransactionType type;
 
   const TransactionModel({
@@ -16,6 +20,7 @@ class TransactionModel {
     required this.category,
     required this.date,
     this.imagePath,
+    this.imageBase64,
     required this.type,
   });
 
@@ -36,6 +41,9 @@ class TransactionModel {
       imagePath: (json['imagePath'] as String?)?.trim().isEmpty == true
           ? null
           : json['imagePath'] as String?,
+      imageBase64: (json['imageBase64'] as String?)?.trim().isEmpty == true
+          ? null
+          : json['imageBase64'] as String?,
       type: resolvedType,
     );
   }
@@ -48,6 +56,7 @@ class TransactionModel {
       'category': category,
       'date': date.toIso8601String(),
       'imagePath': imagePath,
+      'imageBase64': imageBase64,
       'type': type.name,
     };
   }
@@ -59,6 +68,7 @@ class TransactionModel {
     String? category,
     DateTime? date,
     String? imagePath,
+    String? imageBase64,
     TransactionType? type,
   }) {
     return TransactionModel(
@@ -68,8 +78,20 @@ class TransactionModel {
       category: category ?? this.category,
       date: date ?? this.date,
       imagePath: imagePath ?? this.imagePath,
+      imageBase64: imageBase64 ?? this.imageBase64,
       type: type ?? this.type,
     );
+  }
+
+  Uint8List? get imageBytes {
+    if (imageBase64 == null || imageBase64!.isEmpty) {
+      return null;
+    }
+    try {
+      return base64Decode(imageBase64!);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -86,12 +108,21 @@ class TransactionModel {
         category == other.category &&
         date == other.date &&
         imagePath == other.imagePath &&
+        imageBase64 == other.imageBase64 &&
         type == other.type;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, title, amount, category, date, imagePath, type);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    amount,
+    category,
+    date,
+    imagePath,
+    imageBase64,
+    type,
+  );
 
   static TransactionType? _tryParseType(String? rawType) {
     if (rawType == null) return null;

@@ -1,11 +1,12 @@
 // lib/widgets/transaction_card.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/transaction_model.dart';
+import '../utils/file_utils.dart';
 
 enum _TransactionMenuAction { edit, delete }
 
@@ -93,43 +94,71 @@ class TransactionCard extends StatelessWidget {
             ]
           ],
         ),
-        onTap: () {
-          // --- PERUBAHAN DI SINI ---
-          // Cek 'imagePath' (String), bukan 'imageFile' (File)
-          if (transaction.imagePath != null && transaction.imagePath!.isNotEmpty) {
-            
-            // Asumsi: imagePath adalah path file di device
-            final File imageFile = File(transaction.imagePath!);
-
-            // Cek apakah file-nya ada sebelum ditampilkan
-            if (imageFile.existsSync()) {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  content: Image.file(imageFile),
-                  title: const Text("Bukti Transaksi"),
-                  actions: [
-                    TextButton(
-                      child: const Text('Tutup'),
-                      onPressed: () => Navigator.of(context).pop(),
-                    )
-                  ],
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'File gambar tidak ditemukan di path: ${transaction.imagePath}',
-                    ),
-                  ),
-                );
-            }
-          }
-        },
+        onTap: () => _showAttachment(context),
         onLongPress: onEdit,
+      ),
+    );
+  }
+
+  Future<void> _showAttachment(BuildContext context) async {
+    final Uint8List? bytes = transaction.imageBytes;
+    if (bytes != null) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: Image.memory(bytes),
+          title: const Text('Bukti Transaksi'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tutup'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final imagePath = transaction.imagePath;
+    if (imagePath == null || imagePath.isEmpty) {
+      return;
+    }
+
+    if (!fileExists(imagePath)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('File gambar tidak ditemukan di path: $imagePath'),
+          ),
+        );
+      return;
+    }
+
+    final fallbackBytes = await readFileBytes(imagePath);
+    if (!context.mounted) return;
+    if (fallbackBytes == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memuat bukti transaksi dari file lokal.'),
+          ),
+        );
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Image.memory(fallbackBytes),
+        title: const Text('Bukti Transaksi'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Tutup'),
+          ),
+        ],
       ),
     );
   }
