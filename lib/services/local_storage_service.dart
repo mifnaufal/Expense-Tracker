@@ -68,7 +68,7 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> readData() async {
     try {
-      final backendPayload = await _fetchBackendPayload();
+  final backendPayload = await _fetchBackendPayload();
       if (backendPayload != null) {
         if (backendPayload.trim().isEmpty) {
           final seedTransactions = await _loadSeedTransactions();
@@ -269,6 +269,7 @@ class LocalStorageService {
           (value) => value.name == typeString,
           orElse: () => TransactionType.pengeluaran,
         );
+        final imageBase64 = parts.length >= 8 ? _decodeField(parts[7]) : '';
 
         transactions.add(
           TransactionModel(
@@ -278,6 +279,7 @@ class LocalStorageService {
             category: category,
             date: date,
             imagePath: imagePathRaw.isEmpty ? null : imagePathRaw,
+            imageBase64: imageBase64.isEmpty ? null : imageBase64,
             type: type,
           ),
         );
@@ -306,6 +308,7 @@ class LocalStorageService {
       _encodeField(transaction.date.toIso8601String()),
       _encodeField(transaction.imagePath ?? ''),
       _encodeField(transaction.type.name),
+      _encodeField(transaction.imageBase64 ?? ''),
     ];
 
     return fields.join('|');

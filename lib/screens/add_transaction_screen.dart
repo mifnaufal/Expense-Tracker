@@ -1,10 +1,12 @@
-import 'dart:io';
+import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../models/transaction_model.dart';
+import '../utils/file_utils.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final Future<void> Function(TransactionModel) onSubmit;
@@ -43,8 +45,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   TransactionType _selectedType = TransactionType.pengeluaran;
   DateTime _selectedDate = DateTime.now();
-  File? _selectedImage;
-  String? _existingImagePath;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImagePath;
+  String? _existingImageBase64;
   bool _isSubmitting = false;
   late String _selectedCategory;
 
@@ -63,7 +66,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _amountController.text = _formatAmount(transaction.amount);
       _selectedType = transaction.type;
       _selectedDate = transaction.date;
-      _existingImagePath = transaction.imagePath;
+      _selectedImageBytes = transaction.imageBytes;
+      _selectedImagePath = transaction.imagePath;
+      _existingImageBase64 = transaction.imageBase64;
 
       final match = _predefinedCategories.firstWhere(
         (category) => category.toLowerCase() == transaction.category.toLowerCase(),
@@ -76,6 +81,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     } else {
       _selectedCategory = _predefinedCategories.first;
+    }
+
+    if (_selectedImageBytes == null && _selectedImagePath != null && _selectedImagePath!.isNotEmpty && !kIsWeb) {
+      _hydrateExistingImage();
     }
   }
 
@@ -108,6 +117,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
   }
 
+  Future<void> _hydrateExistingImage() async {
+    final path = _selectedImagePath;
+    if (path == null || path.isEmpty) {
+      return;
+    }
+    final bytes = await readFileBytes(path);
+    if (!mounted) return;
+    if (bytes != null) {
+      setState(() {
+        _selectedImageBytes = bytes;
+      });
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -115,9 +138,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         maxWidth: 600,
       );
       if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _selectedImage = File(pickedFile.path);
-          _existingImagePath = null;
+          _selectedImageBytes = bytes;
+          _selectedImagePath = kIsWeb ? null : pickedFile.path;
+          _existingImageBase64 = null;
         });
       }
     } catch (e) {
@@ -159,20 +184,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildImagePreview() {
-    if (_selectedImage != null) {
-      return Image.file(
-        _selectedImage!,
+    final Uint8List? bytes = _selectedImageBytes ?? widget.initialTransaction?.imageBytes;
+    if (bytes != null) {
+      return Image.memory(
+        bytes,
         fit: BoxFit.cover,
       );
-    }
-    if (_existingImagePath != null && _existingImagePath!.isNotEmpty) {
-      final file = File(_existingImagePath!);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-        );
-      }
     }
     return const Center(
       child: Text(
@@ -204,6 +221,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final String transactionId =
         widget.initialTransaction?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
+    String? imageBase64;
+    if (_selectedImageBytes != null) {
+      imageBase64 = base64Encode(_selectedImageBytes!);
+    } else {
+      imageBase64 = _existingImageBase64;
+    }
+
     final newTransaction = TransactionModel(
       id: transactionId,
       title: title,
@@ -211,7 +235,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       category: category,
       date: _selectedDate,
       type: _selectedType,
-      imagePath: _selectedImage?.path ?? _existingImagePath,
+      imagePath: _selectedImagePath,
+      imageBase64: imageBase64,
     );
 
     setState(() {

@@ -1,0 +1,23 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+Future<Uint8List?> readFileBytes(String path) async {
+  try {
+    final file = File(path);
+    if (!await file.exists()) {
+      return null;
+    }
+    return await file.readAsBytes();
+  } catch (_) {
+    return null;
+  }
+}
+
+bool fileExists(String path) {
+  try {
+    return File(path).existsSync();
+  } catch (_) {
+    return false;
+  }
+}
+
