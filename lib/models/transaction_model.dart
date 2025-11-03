@@ -1,5 +1,3 @@
-// ignore: unused_import
-import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -27,13 +25,13 @@ extension TransactionTypeExtension on TransactionType {
     }
   }
 
-  /// Get the color code for the transaction type (can be used with Flutter Color class)
+  /// Get the color code for the transaction type
   String get colorCode {
     switch (this) {
       case TransactionType.pemasukan:
-        return '#4CAF50'; // Green
+        return '#4CAF50';
       case TransactionType.pengeluaran:
-        return '#F44336'; // Red
+        return '#F44336';
     }
   }
 }
@@ -76,25 +74,25 @@ extension DateTimeExtension on DateTime {
 class TransactionModel {
   /// Unique identifier for the transaction
   final String id;
-  
+
   /// Title or description of the transaction
   final String title;
-  
+
   /// Amount of money in the transaction
   final double amount;
-  
+
   /// Category of the transaction (e.g., 'Makanan', 'Transport', etc.)
   final String category;
-  
+
   /// Date when the transaction occurred
   final DateTime date;
-  
+
   /// Path to the image file (for mobile platforms)
   final String? imagePath;
-  
+
   /// Base64 encoded image data (for web platform)
   final String? imageBase64;
-  
+
   /// Type of transaction (income or expense)
   final TransactionType type;
 
@@ -116,13 +114,16 @@ class TransactionModel {
       final String? rawType = json['type'] as String?;
       final TransactionType resolvedType =
           _tryParseType(rawType) ?? _deriveTypeFromCategory(rawCategory);
+
       return TransactionModel(
-        id: json['id']?.toString() ??
+        id:
+            json['id']?.toString() ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         title: (json['title'] ?? '') as String,
         amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
         category: rawCategory,
-        date: DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
+        date:
+            DateTime.tryParse(json['date']?.toString() ?? '') ?? DateTime.now(),
         imagePath: (json['imagePath'] as String?)?.trim().isEmpty == true
             ? null
             : json['imagePath'] as String?,
@@ -132,7 +133,6 @@ class TransactionModel {
         type: resolvedType,
       );
     } catch (e) {
-      // Return a default transaction if JSON parsing fails
       return TransactionModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: 'Error Transaction',
@@ -194,24 +194,19 @@ class TransactionModel {
   }
 
   /// Checks if the transaction has an associated image
-  bool get hasImage => (imagePath != null && imagePath!.isNotEmpty) || 
-                      (imageBase64 != null && imageBase64!.isNotEmpty);
+  bool get hasImage =>
+      (imagePath != null && imagePath!.isNotEmpty) ||
+      (imageBase64 != null && imageBase64!.isNotEmpty);
 
   /// Returns the formatted amount with currency symbol
   String get formattedAmount {
     final prefix = type == TransactionType.pemasukan ? '+ Rp' : '- Rp';
-    return '$prefix ${amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-      (Match m) => '${m[1]}.'
-    )}';
+    return '$prefix ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
   }
 
   /// Returns the amount as a formatted currency string without sign
   String get formattedAmountWithoutSign {
-    return 'Rp ${amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-      (Match m) => '${m[1]}.'
-    )}';
+    return 'Rp ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
   }
 
   /// Checks if the transaction occurred today
@@ -224,11 +219,7 @@ class TransactionModel {
   bool get isThisMonth => date.isThisMonth;
 
   /// Validates the transaction data
-  bool get isValid {
-    return title.isNotEmpty && 
-           amount > 0 && 
-           category.isNotEmpty;
-  }
+  bool get isValid => title.isNotEmpty && amount > 0 && category.isNotEmpty;
 
   /// Returns a string representation of the transaction
   @override
@@ -278,21 +269,27 @@ class TransactionModel {
   /// Derives the transaction type from the category name
   static TransactionType _deriveTypeFromCategory(String category) {
     final lower = category.toLowerCase();
-    
-    // Income categories
+
     const incomeKeywords = [
-      'gaji', 'bonus', 'income', 'pendapatan', 'hadiah', 'investasi',
-      'pemasukan', 'terima', 'uang masuk', 'bayaran', 'upah'
+      'gaji',
+      'bonus',
+      'income',
+      'pendapatan',
+      'hadiah',
+      'investasi',
+      'pemasukan',
+      'terima',
+      'uang masuk',
+      'bayaran',
+      'upah',
     ];
-    
-    // Check if any income keyword is in the category
+
     for (final keyword in incomeKeywords) {
       if (lower.contains(keyword)) {
         return TransactionType.pemasukan;
       }
     }
-    
-    // Default to expense
+
     return TransactionType.pengeluaran;
   }
 
@@ -343,26 +340,30 @@ extension TransactionListExtension on List<TransactionModel> {
 
   /// Filters transactions by category
   List<TransactionModel> filterByCategory(String category) {
-    return where((transaction) => 
-        transaction.category.toLowerCase() == category.toLowerCase()
+    return where(
+      (transaction) =>
+          transaction.category.toLowerCase() == category.toLowerCase(),
     ).toList();
   }
 
   /// Filters transactions by date range
   List<TransactionModel> filterByDateRange(DateTime start, DateTime end) {
-    return where((transaction) => 
-        transaction.date.isAfter(start.subtract(const Duration(days: 1))) &&
-        transaction.date.isBefore(end.add(const Duration(days: 1)))
+    return where(
+      (transaction) =>
+          transaction.date.isAfter(start.subtract(const Duration(days: 1))) &&
+          transaction.date.isBefore(end.add(const Duration(days: 1))),
     ).toList();
   }
 
   /// Calculates the total amount for all transactions
-  double get totalAmount => fold(0.0, (sum, transaction) => sum + transaction.amount);
+  double get totalAmount =>
+      fold(0.0, (sum, transaction) => sum + transaction.amount);
 
   /// Calculates the total amount for transactions of a specific type
   double totalByType(TransactionType type) {
-    return where((transaction) => transaction.type == type)
-        .fold(0.0, (sum, transaction) => sum + transaction.amount);
+    return where(
+      (transaction) => transaction.type == type,
+    ).fold(0.0, (sum, transaction) => sum + transaction.amount);
   }
 
   /// Calculates the total income
@@ -390,7 +391,8 @@ extension TransactionListExtension on List<TransactionModel> {
   Map<String, List<TransactionModel>> groupByMonth() {
     final Map<String, List<TransactionModel>> grouped = {};
     for (final transaction in this) {
-      final monthKey = '${transaction.date.year}-${transaction.date.month.toString().padLeft(2, '0')}';
+      final monthKey =
+          '${transaction.date.year}-${transaction.date.month.toString().padLeft(2, '0')}';
       if (!grouped.containsKey(monthKey)) {
         grouped[monthKey] = [];
       }
@@ -402,18 +404,21 @@ extension TransactionListExtension on List<TransactionModel> {
   /// Sorts transactions by date (newest first)
   List<TransactionModel> sortByDate({bool descending = true}) {
     final sorted = List<TransactionModel>.from(this);
-    sorted.sort((a, b) => descending 
-        ? b.date.compareTo(a.date) 
-        : a.date.compareTo(b.date));
+    sorted.sort(
+      (a, b) =>
+          descending ? b.date.compareTo(a.date) : a.date.compareTo(b.date),
+    );
     return sorted;
   }
 
   /// Sorts transactions by amount (highest first)
   List<TransactionModel> sortByAmount({bool descending = true}) {
     final sorted = List<TransactionModel>.from(this);
-    sorted.sort((a, b) => descending 
-        ? b.amount.compareTo(a.amount) 
-        : a.amount.compareTo(b.amount));
+    sorted.sort(
+      (a, b) => descending
+          ? b.amount.compareTo(a.amount)
+          : a.amount.compareTo(b.amount),
+    );
     return sorted;
   }
 }

@@ -4,7 +4,6 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// ignore: unused_import
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -454,11 +453,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
-    final accentColor = _selectedType == TransactionType.pemasukan
-        ? Colors.greenAccent.shade700
-        : Colors.redAccent.shade700;
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -582,58 +576,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: _amountController,
-                    decoration: InputDecoration(
-                      labelText: 'Rp 0',
-                      labelStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      prefixIcon: Container(
-                        margin: const EdgeInsets.all(12),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.attach_money,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                TextFormField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: 'Rp 0',
+                    prefixIcon: const Icon(Icons.attach_money),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    keyboardType: TextInputType.number,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Jumlah tidak boleh kosong';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Masukkan angka yang valid';
-                      }
-                      if (double.parse(value) <= 0) {
-                        return 'Jumlah harus lebih besar dari 0';
-                      }
-                      return null;
-                    },
                   ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Jumlah tidak boleh kosong';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Masukkan angka yang valid';
+                    }
+                    if (double.parse(value) <= 0) {
+                      return 'Jumlah harus lebih besar dari 0';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
 
@@ -645,47 +609,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextFormField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: 'Tambahkan deskripsi',
-                      labelStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      prefixIcon: Container(
-                        margin: const EdgeInsets.all(12),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.description_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: 'Tambahkan deskripsi',
+                    prefixIcon: const Icon(Icons.description_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Deskripsi tidak boleh kosong';
-                      }
-                      return null;
-                    },
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Deskripsi tidak boleh kosong';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
 
@@ -697,109 +635,53 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    key: ValueKey(_selectedCategory),
-                    value: _selectedCategory,
-                    decoration: InputDecoration(
-                      labelText: 'Pilih kategori',
-                      labelStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      prefixIcon: Container(
-                        margin: const EdgeInsets.all(12),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.category_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                DropdownButtonFormField<String>(
+                  key: ValueKey(_selectedCategory),
+                  value: _selectedCategory,
+                  decoration: InputDecoration(
+                    labelText: 'Pilih kategori',
+                    prefixIcon: const Icon(Icons.category_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    items: _predefinedCategories
-                        .map(
-                          (category) => DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() {
-                        _selectedCategory = value;
-                        if (!_isCustomCategory) {
-                          _customCategoryController.clear();
-                        }
-                      });
-                    },
                   ),
+                  items: _predefinedCategories
+                      .map(
+                        (category) => DropdownMenuItem<String>(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _selectedCategory = value;
+                      if (!_isCustomCategory) {
+                        _customCategoryController.clear();
+                      }
+                    });
+                  },
                 ),
                 if (_isCustomCategory) ...[
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextFormField(
-                      controller: _customCategoryController,
-                      decoration: InputDecoration(
-                        labelText: 'Kategori Lainnya',
-                        hintText: 'Contoh: Hadiah, Freelance, dll.',
-                        labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        prefixIcon: Container(
-                          margin: const EdgeInsets.all(12),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.edit_outlined,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                        ),
+                  TextFormField(
+                    controller: _customCategoryController,
+                    decoration: InputDecoration(
+                      labelText: 'Kategori Lainnya',
+                      hintText: 'Contoh: Hadiah, Freelance, dll.',
+                      prefixIcon: const Icon(Icons.edit_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      validator: (value) {
-                        if (_isCustomCategory &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'Silakan isi kategori lainnya';
-                        }
-                        return null;
-                      },
                     ),
+                    validator: (value) {
+                      if (_isCustomCategory &&
+                          (value == null || value.trim().isEmpty)) {
+                        return 'Silakan isi kategori lainnya';
+                      }
+                      return null;
+                    },
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -812,39 +694,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                ListTile(
+                  leading: const Icon(Icons.calendar_today_outlined),
+                  title: Text(
+                    DateFormat('d MMMM yyyy').format(_selectedDate),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  child: ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.calendar_today_outlined,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    title: Text(
-                      DateFormat('d MMMM yyyy').format(_selectedDate),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_drop_down,
+                  trailing: const Icon(Icons.arrow_drop_down),
+                  onTap: _presentDatePicker,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
                       color: Theme.of(context).colorScheme.outline,
                     ),
-                    onTap: _presentDatePicker,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -861,15 +723,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),

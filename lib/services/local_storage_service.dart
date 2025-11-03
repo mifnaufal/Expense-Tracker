@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../models/transaction_model.dart';
 
 class TransactionResult {
@@ -41,8 +42,16 @@ class LocalStorageService {
       }
 
       final contents = await file.readAsString();
+      if (contents.trim().isEmpty) {
+        return [];
+      }
+
       final List<dynamic> jsonList = json.decode(contents);
-      return jsonList.map((json) => TransactionModel.fromJson(json)).toList();
+      return jsonList
+          .map(
+            (json) => TransactionModel.fromJson(json as Map<String, dynamic>),
+          )
+          .toList();
     } catch (e) {
       debugPrint('Error reading data: $e');
       return [];
@@ -54,6 +63,7 @@ class LocalStorageService {
       final file = await _localFile;
       final transactions = await readData();
       transactions.add(transaction);
+
       final String jsonString = json.encode(
         transactions.map((tx) => tx.toJson()).toList(),
       );
