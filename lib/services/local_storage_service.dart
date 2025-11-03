@@ -6,8 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
-import 'web_storage_stub.dart'
-  if (dart.library.html) 'web_storage_web.dart';
+import 'web_storage_stub.dart' if (dart.library.html) 'web_storage_web.dart';
 
 import '../models/transaction_model.dart';
 
@@ -38,17 +37,16 @@ class LocalStorageService {
   List<TransactionModel> _parseTransactions(String rawContent) {
     final List<dynamic> jsonList = json.decode(rawContent) as List<dynamic>;
     return jsonList
-        .map((jsonItem) => TransactionModel.fromJson(jsonItem as Map<String, dynamic>))
+        .map(
+          (jsonItem) =>
+              TransactionModel.fromJson(jsonItem as Map<String, dynamic>),
+        )
         .toList();
   }
 
   Future<List<TransactionModel>> _readFromWebStorage() async {
     String? rawContent = await webStorageRead(_storagePrefsKey);
 
-<<<<<<< HEAD
- 
-  Future<List<TransactionModel>> loadTransactions() async {
-=======
     if (rawContent == null) {
       rawContent = await rootBundle.loadString(_transactionsAssetPath);
       await webStorageWrite(_storagePrefsKey, rawContent);
@@ -66,7 +64,6 @@ class LocalStorageService {
   }
 
   Future<List<TransactionModel>> readData() async {
->>>>>>> 87c6702623d3eba141274ba17434d417848531b3
     try {
       if (kIsWeb) {
         return await _readFromWebStorage();
@@ -80,32 +77,6 @@ class LocalStorageService {
 
       return _parseTransactions(rawContent);
     } catch (e) {
-<<<<<<< HEAD
-      // Tangani error jika file tidak ditemukan atau format JSON salah
-      print('Error loading transactions from asset: $e');
-      return []; // Kembalikan list kosong jika gagal
-    }
-  }
-
- 
-  Future<void> saveTransactions(List<TransactionModel> transactions) async {
-  
-    
-    // TODO: Implementasi penyimpanan ke device.
-    // 1. Dapatkan path direktori dokumen aplikasi (pakai package 'path_provider')
-    //    final directory = await getApplicationDocumentsDirectory();
-    //    final path = '${directory.path}/transactions.json';
-    // 2. Ubah List<TransactionModel> ke List<Map>
-    //    final List<Map<String, dynamic>> jsonList = 
-    //        transactions.map((tx) => tx.toJson()).toList();
-    // 3. Encode ke string JSON
-    //    final String jsonString = json.encode(jsonList);
-    // 4. Tulis string ke file
-    //    final file = File(path);
-    //    await file.writeAsString(jsonString);
-
-    print('Simulasi menyimpan data... (Implementasi penuh butuh path_provider)');
-=======
       debugPrint('Error reading transactions: $e');
       return [];
     }
@@ -130,7 +101,9 @@ class LocalStorageService {
     }
   }
 
-  Future<List<TransactionModel>> addTransaction(TransactionModel transaction) async {
+  Future<List<TransactionModel>> addTransaction(
+    TransactionModel transaction,
+  ) async {
     final transactions = await readData();
     final updatedTransactions = [...transactions, transaction];
     await writeData(updatedTransactions);
@@ -143,7 +116,9 @@ class LocalStorageService {
   }) async {
     final transactions = await readData();
     final jsonReady = transactions.map((tx) => tx.toJson()).toList();
-    final encoder = pretty ? const JsonEncoder.withIndent('  ') : const JsonEncoder();
+    final encoder = pretty
+        ? const JsonEncoder.withIndent('  ')
+        : const JsonEncoder();
     final jsonString = encoder.convert(jsonReady);
 
     bool wroteFile = false;
@@ -154,7 +129,9 @@ class LocalStorageService {
           await seedFile.writeAsString(jsonString);
           wroteFile = true;
         } else {
-          debugPrint('Seed file not found at ${seedFile.path}. Skipping write.');
+          debugPrint(
+            'Seed file not found at ${seedFile.path}. Skipping write.',
+          );
         }
       } catch (e) {
         debugPrint('Unable to write seed file: $e');
@@ -164,9 +141,13 @@ class LocalStorageService {
     return (json: jsonString, wroteSeedFile: wroteFile);
   }
 
-  Future<List<TransactionModel>> updateTransaction(TransactionModel updatedTransaction) async {
+  Future<List<TransactionModel>> updateTransaction(
+    TransactionModel updatedTransaction,
+  ) async {
     final transactions = await readData();
-    final index = transactions.indexWhere((tx) => tx.id == updatedTransaction.id);
+    final index = transactions.indexWhere(
+      (tx) => tx.id == updatedTransaction.id,
+    );
     if (index == -1) {
       throw Exception('Transaction with id ${updatedTransaction.id} not found');
     }
@@ -179,7 +160,9 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> deleteTransaction(String transactionId) async {
     final transactions = await readData();
-    final updatedTransactions = transactions.where((tx) => tx.id != transactionId).toList();
+    final updatedTransactions = transactions
+        .where((tx) => tx.id != transactionId)
+        .toList();
     await writeData(updatedTransactions);
     return updatedTransactions;
   }
@@ -201,6 +184,5 @@ class LocalStorageService {
     } catch (e) {
       debugPrint('Unable to sync seed data file: $e');
     }
->>>>>>> 87c6702623d3eba141274ba17434d417848531b3
   }
 }

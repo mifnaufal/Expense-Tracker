@@ -66,7 +66,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _existingImagePath = transaction.imagePath;
 
       final match = _predefinedCategories.firstWhere(
-        (category) => category.toLowerCase() == transaction.category.toLowerCase(),
+        (category) =>
+            category.toLowerCase() == transaction.category.toLowerCase(),
         orElse: () => _otherCategoryLabel,
       );
 
@@ -160,26 +161,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   Widget _buildImagePreview() {
     if (_selectedImage != null) {
-      return Image.file(
-        _selectedImage!,
-        fit: BoxFit.cover,
-      );
+      return Image.file(_selectedImage!, fit: BoxFit.cover);
     }
     if (_existingImagePath != null && _existingImagePath!.isNotEmpty) {
       final file = File(_existingImagePath!);
       if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-        );
+        return Image.file(file, fit: BoxFit.cover);
       }
     }
-    return const Center(
-      child: Text(
-        'Foto Bukti',
-        textAlign: TextAlign.center,
-      ),
-    );
+    return const Center(child: Text('Foto Bukti', textAlign: TextAlign.center));
   }
 
   Future<void> _submitData() async {
@@ -202,7 +192,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     FocusScope.of(context).unfocus();
 
     final String transactionId =
-        widget.initialTransaction?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+        widget.initialTransaction?.id ??
+        DateTime.now().millisecondsSinceEpoch.toString();
 
     final newTransaction = TransactionModel(
       id: transactionId,
@@ -233,7 +224,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Gagal menyimpan transaksi. Coba lagi.')),
+          const SnackBar(
+            content: Text('Gagal menyimpan transaksi. Coba lagi.'),
+          ),
         );
     }
   }
@@ -248,7 +241,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             icon: const Icon(Icons.save),
             onPressed: _isSubmitting ? null : _submitData,
             tooltip: 'Simpan',
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -328,7 +321,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    if (_isCustomCategory && (value == null || value.trim().isEmpty)) {
+                    if (_isCustomCategory &&
+                        (value == null || value.trim().isEmpty)) {
                       return 'Silakan isi kategori lainnya';
                     }
                     return null;
@@ -376,14 +370,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       'Pilih Tanggal',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  )
+                  ),
                 ],
               ),
-<<<<<<< HEAD
-SizedBox(height: 16),
-=======
               const SizedBox(height: 16),
->>>>>>> 87c6702623d3eba141274ba17434d417848531b3
               Row(
                 children: [
                   Container(
