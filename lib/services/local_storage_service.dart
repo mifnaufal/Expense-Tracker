@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -67,7 +68,7 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> readData() async {
     try {
-      final backendPayload = await _backendClient?.fetchTransactions();
+      final backendPayload = await _fetchBackendPayload();
       if (backendPayload != null) {
         if (backendPayload.trim().isEmpty) {
           final seedTransactions = await _loadSeedTransactions();
@@ -143,6 +144,32 @@ class LocalStorageService {
 
   Future<List<TransactionModel>> loadTransactions() {
     return readData();
+  }
+
+  Future<String?> _fetchBackendPayload() async {
+    if (!_backendEnabled) {
+      return null;
+    }
+
+    const attemptDelays = <Duration>[
+      Duration.zero,
+      Duration(milliseconds: 250),
+      Duration(milliseconds: 600),
+      Duration(milliseconds: 1200),
+    ];
+
+    for (final delay in attemptDelays) {
+      if (delay > Duration.zero) {
+        await Future.delayed(delay);
+      }
+
+      final payload = await _backendClient!.fetchTransactions();
+      if (payload != null) {
+        return payload;
+      }
+    }
+
+    return null;
   }
 
   Future<({String payload, String storagePath})> exportTransactions() async {
