@@ -128,7 +128,6 @@ class TransactionCard extends StatelessWidget {
                 );
             }
           }
-          // Jika imagePath null (seperti di JSON kamu), tidak terjadi apa-apa
         },
         onLongPress: onEdit,
       ),

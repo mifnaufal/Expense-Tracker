@@ -1,16 +1,114 @@
-# expense_tracker
+# Expense Tracker
 
-A new Flutter project.
+Aplikasi pembelajaran Flutter untuk mencatat pemasukan dan pengeluaran. Data disimpan dalam berkas di dalam proyek, dan Shelf backend lokal memastikan setiap operasi CRUD (buat, baca, ubah, hapus) tersinkronisasi baik di platform mobile maupun web.
 
-## Getting Started
+## Prasyarat
 
-This project is a starting point for a Flutter application.
+- Flutter SDK 3.19 atau lebih baru (otomatis menyertakan Dart 3.3+).
+- Git terpasang pada sistem.
+- Terminal PowerShell (Windows) atau shell sejenis.
+- Browser modern (Chrome direkomendasikan) bila ingin menjalankan mode web.
 
-A few resources to get you started if this is your first Flutter project:
+## Langkah Menjalankan Proyek (setelah clone)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Untuk langkah simpelnya, bisa scroll sampai bawah ya :))))
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. **Clone repository dan masuk ke folder proyek**
+
+   ```powershell
+   git clone https://github.com/mifnaufal/Expense-Tracker.git
+   cd Expense-Tracker
+   ```
+
+2. **Pasang seluruh dependency Flutter**
+
+   ```powershell
+   flutter pub get
+   ```
+
+3. **Jalankan backend + aplikasi secara otomatis**
+
+   ```powershell
+   dart run tool/dev_launcher.dart
+   ```
+
+   Perintah ini akan:
+
+   - Mengecek apakah backend Shelf sudah aktif di `http://localhost:1234`.
+   - Menyalakannya bila belum ada, lalu menunggu hingga endpoint `/health` siap.
+   - Menjalankan `flutter run -d chrome` dengan `--dart-define=EXPENSE_BACKEND_URL=http://localhost:1234`.
+
+   Setelah Flutter berjalan, tekan `r` untuk hot reload, `R` untuk hot restart, dan `q` atau `CTRL+C` untuk keluar. Launcher akan mematikan backend secara otomatis saat Anda menghentikan Flutter.
+
+4. **Menyesuaikan parameter (opsional)**
+
+   Tambahkan argumen setelah `--` untuk meneruskan opsi apa pun ke `flutter run`. Contoh memaksa web server:
+
+   ```powershell
+   dart run tool/dev_launcher.dart -- -d web-server
+   ```
+
+   Opsi lain yang tersedia:
+
+   - `--backend-port <port>`: mengganti port backend (mis. `--backend-port 9090`).
+   - `--skip-flutter`: hanya menyalakan backend tanpa menjalankan Flutter (berguna bila ingin membuka beberapa terminal).
+
+## Menjalankan Backend & Flutter Secara Manual (alternatif)
+
+Jika ingin mengelola backend sendiri:
+
+```powershell
+cd backend
+dart pub get
+dart run bin/server.dart --port 1234
+```
+
+Biarkan proses tersebut aktif. Pada terminal baru, jalankan Flutter dengan `dart-define` yang sesuai:
+
+```powershell
+flutter run -d chrome --dart-define=EXPENSE_BACKEND_URL=http://localhost:1234
+```
+
+## Struktur Folder Penting
+
+- `lib/` – kode utama aplikasi Flutter.
+- `data/transactions.store` – berkas utama penyimpanan transaksi (format Base64 + pemisah pipa).
+- `data/transactions.json` – data awal (seed) yang dimuat saat berkas utama kosong.
+- `backend/` – proyek Shelf sederhana yang melayani permintaan CRUD.
+- `tools/backend/` – varian backend untuk kebutuhan pengembangan.
+- `tool/dev_launcher.dart` – skrip helper untuk menyalakan backend dan Flutter sekaligus.
+
+## Lokasi Penyimpanan Data
+
+Semua perubahan transaksi akan tersimpan ke `data/transactions.store` di dalam root proyek. Anda dapat meng-commit berkas ini untuk membagikan data contoh ke rekan lain.
+
+## Menjalankan Tes
+
+```powershell
+flutter test
+```
+
+## Tips Troubleshooting
+
+- Jika launcher gagal menyalakan backend, pastikan port 1234 (atau port kustom Anda) tidak dipakai aplikasi lain.
+- Untuk mode web, pastikan browser mengizinkan akses ke `http://localhost:<port>`.
+- Backend menulis log ke terminal dengan prefix `[backend]`; periksa bila terjadi error saat menyimpan data.
+- Hapus `data/transactions.store` bila ingin mengulang data ke kondisi awal (seed dari `data/transactions.json`).
+
+### Alternatif
+
+Ini untuk para pengguna yang gak mau baca semuanya :)
+
+step-by-step:
+
+- flutter pub get
+- flutter pub upgrade --major-versions
+- cd backend (pastikan udah didalam projectnya rootnya)
+- dart pub get
+- dart run bin/server.dart <-- (SEKALI AJA)
+- buat terminal baru/keluar dari folder backend
+- flutter run -d chrome (atau yang biasa kamu pake buat ngerun flutter)
+
+note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5
+
+note 2: kalau ada error, pake flutter analyze dan kasih ai :) jika analyzenya oke tapi commandnya error gak tau dah tu

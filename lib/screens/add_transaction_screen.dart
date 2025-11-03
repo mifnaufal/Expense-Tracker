@@ -274,13 +274,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Jumlah tidak boleh kosong';
+                    return 'Jumlah tidak boleh kosong >:( )';
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid';
+                    return 'Masukkan angka yang valid >:( )';
                   }
                   if (double.parse(value) <= 0) {
-                    return 'Jumlah harus lebih besar dari 0';
+                    return 'Jumlah harus lebih besar dari 0 >:( )';
                   }
                   return null;
                 },
@@ -321,12 +321,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    if (_isCustomCategory &&
-                        (value == null || value.trim().isEmpty)) {
-                      return 'Silakan isi kategori lainnya';
-                    }
-                    return null;
-                  },
+  if (_isCustomCategory && (value == null || value.trim().isEmpty)) {
+    return 'Silakan isi kategori lainnya 😁';
+  }
+  return null;
+},
                 ),
               ],
               const SizedBox(height: 16),
@@ -339,12 +338,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: TransactionType.pengeluaran,
-                    child: Text('Pengeluaran'),
-                  ),
-                  DropdownMenuItem(
                     value: TransactionType.pemasukan,
                     child: Text('Pemasukan'),
+                  ),
+                  DropdownMenuItem(
+                    value: TransactionType.pengeluaran,
+                    child: Text('Pengeluaran'),
                   ),
                 ],
                 onChanged: (value) {
