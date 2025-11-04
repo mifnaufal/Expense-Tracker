@@ -8,6 +8,20 @@ import '../widgets/transaction_card.dart';
 import 'add_transaction_screen.dart';
 import 'summary_screen.dart';
 
+
+final MaterialColor primaryColor = MaterialColor(0xFF2196F3, <int, Color>{
+  50: Color(0xFFE3F2FD),
+  100: Color(0xFFBBDEFB),
+  200: Color(0xFF90CAF9),
+  300: Color(0xFF64B5F6),
+  400: Color(0xFF42A5F5),
+  500: Color(0xFF2196F3),
+  600: Color(0xFF1E88E5),
+  700: Color(0xFF1976D2),
+  800: Color(0xFF1565C0),
+  900: Color(0xFF0D47A1),
+});
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -70,7 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await _storageService.addTransaction(newTx);
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil ditambahkan', result.storagePath);
+      _showPersistenceFeedback(
+        'Transaksi berhasil ditambahkan',
+        result.storagePath,
+      );
     } catch (e) {
       if (!mounted) return;
       debugPrint('Gagal menambahkan transaksi: $e');
@@ -81,9 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateToAddScreen() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (ctx) => AddTransactionScreen(
-          onSubmit: _addTransaction,
-        ),
+        builder: (ctx) => AddTransactionScreen(onSubmit: _addTransaction),
       ),
     );
   }
@@ -101,10 +116,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _editTransaction(TransactionModel updatedTransaction) async {
     try {
-      final result = await _storageService.updateTransaction(updatedTransaction);
+      final result = await _storageService.updateTransaction(
+        updatedTransaction,
+      );
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil diperbarui', result.storagePath);
+      _showPersistenceFeedback(
+        'Transaksi berhasil diperbarui',
+        result.storagePath,
+      );
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Gagal memperbarui transaksi');
@@ -116,7 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await _storageService.deleteTransaction(transactionId);
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil dihapus', result.storagePath);
+      _showPersistenceFeedback(
+        'Transaksi berhasil dihapus',
+        result.storagePath,
+      );
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Gagal menghapus transaksi');
@@ -143,7 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus Transaksi'),
-        content: Text('Apakah kamu yakin ingin menghapus "${transaction.title}"?'),
+        content: Text(
+          'Apakah kamu yakin ingin menghapus "${transaction.title}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
@@ -164,9 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showPersistenceFeedback(String baseMessage, String storagePath) {
@@ -184,82 +207,111 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Expense Tracker'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.bar_chart),
-            onPressed: _navigateToSummaryScreen,
-            tooltip: 'Ringkasan',
-          ),
-          IconButton(
-            icon: Icon(Icons.download),
-            onPressed: _exportTransactions,
-            tooltip: 'Ekspor JSON',
-          ),
-        ],
+    return MaterialApp(
+      theme: ThemeData(
+        primarySwatch: primaryColor,
+        // Menambahkan warna primer dan aksen
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          primary: Colors.blue,
+          secondary: Colors.orange,
+        ),
+        // Memastikan AppBar menggunakan warna primer
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
+        // Memastikan FloatingActionButton menggunakan warna aksen
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: Colors.orange,
+          foregroundColor: Colors.white,
+        ),
       ),
-      // 5. Tampilkan loading indicator jika data sedang dimuat
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // 1. Total Saldo
-                BalanceSummary(
-                  totalBalance: _totalBalance,
-                  totalIncome: _totalIncome,
-                  totalExpense: _totalExpense,
-                ),
-                // 2. Judul Daftar Transaksi
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Transaksi Terakhir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _navigateToSummaryScreen,
-                        child: Text('Lihat Semua'),
-                      )
-                    ],
-                  ),
-                ),
-                // 3. Daftar Transaksi (Scrollable)
-                Expanded(
-                  child: _transactions.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Belum ada transaksi.',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _transactions.length,
-                          itemBuilder: (ctx, index) {
-                            final transaction = _transactions[index];
-                            return TransactionCard(
-                              transaction: transaction,
-                              onEdit: () => _navigateToEditScreen(transaction),
-                              onDelete: () => _confirmDeleteTransaction(transaction),
-                            );
-                          },
-                        ),
-                ),
-              ],
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Expense Tracker'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.bar_chart),
+              onPressed: _navigateToSummaryScreen,
+              tooltip: 'Ringkasan',
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddScreen,
-        tooltip: 'Tambah Transaksi',
-        child: const Icon(Icons.add),
+            IconButton(
+              icon: Icon(Icons.download),
+              onPressed: _exportTransactions,
+              tooltip: 'Ekspor JSON',
+            ),
+          ],
+        ),
+        // 5. Tampilkan loading indicator jika data sedang dimuat
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  // 1. Total Saldo
+                  BalanceSummary(
+                    totalBalance: _totalBalance,
+                    totalIncome: _totalIncome,
+                    totalExpense: _totalExpense,
+                  ),
+                  // 2. Judul Daftar Transaksi
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Transaksi Terakhir',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _navigateToSummaryScreen,
+                          child: Text('Lihat Semua'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 3. Daftar Transaksi (Scrollable)
+                  Expanded(
+                    child: _transactions.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Belum ada transaksi.',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _transactions.length,
+                            itemBuilder: (ctx, index) {
+                              final transaction = _transactions[index];
+                              return TransactionCard(
+                                transaction: transaction,
+                                onEdit: () =>
+                                    _navigateToEditScreen(transaction),
+                                onDelete: () =>
+                                    _confirmDeleteTransaction(transaction),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _navigateToAddScreen,
+          tooltip: 'Tambah Transaksi',
+          child: const Icon(Icons.add),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

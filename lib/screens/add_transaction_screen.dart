@@ -71,7 +71,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _existingImageBase64 = transaction.imageBase64;
 
       final match = _predefinedCategories.firstWhere(
-        (category) => category.toLowerCase() == transaction.category.toLowerCase(),
+        (category) =>
+            category.toLowerCase() == transaction.category.toLowerCase(),
         orElse: () => _otherCategoryLabel,
       );
 
@@ -83,7 +84,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _selectedCategory = _predefinedCategories.first;
     }
 
-    if (_selectedImageBytes == null && _selectedImagePath != null && _selectedImagePath!.isNotEmpty && !kIsWeb) {
+    if (_selectedImageBytes == null &&
+        _selectedImagePath != null &&
+        _selectedImagePath!.isNotEmpty &&
+        !kIsWeb) {
       _hydrateExistingImage();
     }
   }
@@ -184,19 +188,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildImagePreview() {
-    final Uint8List? bytes = _selectedImageBytes ?? widget.initialTransaction?.imageBytes;
+    final Uint8List? bytes =
+        _selectedImageBytes ?? widget.initialTransaction?.imageBytes;
     if (bytes != null) {
-      return Image.memory(
-        bytes,
-        fit: BoxFit.cover,
-      );
+      return Image.memory(bytes, fit: BoxFit.cover);
     }
-    return const Center(
-      child: Text(
-        'Foto Bukti',
-        textAlign: TextAlign.center,
-      ),
-    );
+    return const Center(child: Text('Foto Bukti', textAlign: TextAlign.center));
   }
 
   Future<void> _submitData() async {
@@ -219,7 +216,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     FocusScope.of(context).unfocus();
 
     final String transactionId =
-        widget.initialTransaction?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+        widget.initialTransaction?.id ??
+        DateTime.now().millisecondsSinceEpoch.toString();
 
     String? imageBase64;
     if (_selectedImageBytes != null) {
@@ -258,7 +256,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Gagal menyimpan transaksi. Coba lagi.')),
+          const SnackBar(
+            content: Text('Gagal menyimpan transaksi. Coba lagi.'),
+          ),
         );
     }
   }
@@ -273,7 +273,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             icon: const Icon(Icons.save),
             onPressed: _isSubmitting ? null : _submitData,
             tooltip: 'Simpan',
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -353,7 +353,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    if (_isCustomCategory && (value == null || value.trim().isEmpty)) {
+                    if (_isCustomCategory &&
+                        (value == null || value.trim().isEmpty)) {
                       return 'Silakan isi kategori lainnya 😁';
                     }
                     return null;
@@ -401,7 +402,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       'Pilih Tanggal',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

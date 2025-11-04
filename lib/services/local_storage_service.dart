@@ -5,11 +5,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
+import 'web_storage_stub.dart' if (dart.library.html) 'web_storage_web.dart';
 
 import '../models/transaction_model.dart';
 import 'backend_client.dart';
-import 'web_storage_stub.dart'
-    if (dart.library.html) 'web_storage_web.dart';
 
 typedef TransactionCrudResult = ({
   List<TransactionModel> transactions,
@@ -21,7 +20,7 @@ typedef _TransactionWriteResult = ({String serialized, String storagePath});
 
 class LocalStorageService {
   LocalStorageService({BackendClient? backendClient})
-      : _backendClient = backendClient ?? BackendClient.tryCreate();
+    : _backendClient = backendClient ?? BackendClient.tryCreate();
 
   final BackendClient? _backendClient;
 
@@ -102,7 +101,9 @@ class LocalStorageService {
     }
   }
 
-  Future<TransactionCrudResult> addTransaction(TransactionModel transaction) async {
+  Future<TransactionCrudResult> addTransaction(
+    TransactionModel transaction,
+  ) async {
     final transactions = await readData();
     final updatedTransactions = [...transactions, transaction];
     final writeResult = await _writeData(updatedTransactions);
@@ -113,9 +114,13 @@ class LocalStorageService {
     );
   }
 
-  Future<TransactionCrudResult> updateTransaction(TransactionModel updatedTransaction) async {
+  Future<TransactionCrudResult> updateTransaction(
+    TransactionModel updatedTransaction,
+  ) async {
     final transactions = await readData();
-    final index = transactions.indexWhere((tx) => tx.id == updatedTransaction.id);
+    final index = transactions.indexWhere(
+      (tx) => tx.id == updatedTransaction.id,
+    );
     if (index == -1) {
       throw Exception('Transaction with id ${updatedTransaction.id} not found');
     }
@@ -132,8 +137,9 @@ class LocalStorageService {
 
   Future<TransactionCrudResult> deleteTransaction(String transactionId) async {
     final transactions = await readData();
-    final updatedTransactions =
-        transactions.where((tx) => tx.id != transactionId).toList();
+    final updatedTransactions = transactions
+        .where((tx) => tx.id != transactionId)
+        .toList();
     final writeResult = await _writeData(updatedTransactions);
     return (
       transactions: updatedTransactions,
@@ -178,23 +184,33 @@ class LocalStorageService {
 
     if (_backendEnabled) {
       final path = await _backendClient?.persistTransactions(serialized);
-      return (payload: serialized, storagePath: path ?? _backendClient!.storagePath);
+      return (
+        payload: serialized,
+        storagePath: path ?? _backendClient!.storagePath,
+      );
     }
 
     if (kIsWeb) {
-      return (payload: serialized, storagePath: 'web-local-storage:$_storagePrefsKey');
+      return (
+        payload: serialized,
+        storagePath: 'web-local-storage:$_storagePrefsKey',
+      );
     }
 
     final file = await _getLocalFile();
     return (payload: serialized, storagePath: file.path);
   }
 
-  Future<_TransactionWriteResult> _writeData(List<TransactionModel> transactions) async {
+  Future<_TransactionWriteResult> _writeData(
+    List<TransactionModel> transactions,
+  ) async {
     try {
       final serialized = _serializeTransactions(transactions);
 
       if (_backendEnabled) {
-        final backendPath = await _backendClient?.persistTransactions(serialized);
+        final backendPath = await _backendClient?.persistTransactions(
+          serialized,
+        );
         if (backendPath != null) {
           return (serialized: serialized, storagePath: backendPath);
         }
@@ -202,7 +218,10 @@ class LocalStorageService {
 
       if (kIsWeb) {
         await _writeToWebStorage(serialized);
-        return (serialized: serialized, storagePath: 'web-local-storage:$_storagePrefsKey');
+        return (
+          serialized: serialized,
+          storagePath: 'web-local-storage:$_storagePrefsKey',
+        );
       }
 
       final file = await _getLocalFile();
@@ -236,7 +255,10 @@ class LocalStorageService {
       final rawJson = await rootBundle.loadString(_transactionsAssetPath);
       final List<dynamic> jsonList = json.decode(rawJson) as List<dynamic>;
       return jsonList
-          .map((jsonItem) => TransactionModel.fromJson(jsonItem as Map<String, dynamic>))
+          .map(
+            (jsonItem) =>
+                TransactionModel.fromJson(jsonItem as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       debugPrint('Failed to load seed transactions: $e');
@@ -262,7 +284,8 @@ class LocalStorageService {
         final title = _decodeField(parts[1]);
         final amount = double.tryParse(_decodeField(parts[2])) ?? 0.0;
         final category = _decodeField(parts[3]);
-        final date = DateTime.tryParse(_decodeField(parts[4])) ?? DateTime.now();
+        final date =
+            DateTime.tryParse(_decodeField(parts[4])) ?? DateTime.now();
         final imagePathRaw = _decodeField(parts[5]);
         final typeString = _decodeField(parts[6]);
         final type = TransactionType.values.firstWhere(

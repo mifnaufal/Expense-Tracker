@@ -105,12 +105,12 @@ class TransactionCard extends StatelessWidget {
     if (bytes != null) {
       await showDialog<void>(
         context: context,
-        builder: (_) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           content: Image.memory(bytes),
           title: const Text('Bukti Transaksi'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Tutup'),
             ),
           ],
@@ -150,12 +150,12 @@ class TransactionCard extends StatelessWidget {
 
     await showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         content: Image.memory(fallbackBytes),
         title: const Text('Bukti Transaksi'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Tutup'),
           ),
         ],

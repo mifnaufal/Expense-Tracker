@@ -27,10 +27,13 @@ class TransactionModel {
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     final String rawCategory = (json['category'] ?? '') as String;
     final String? rawType = json['type'] as String?;
-    final TransactionType resolvedType = _tryParseType(rawType) ?? _deriveTypeFromCategory(rawCategory);
+    final TransactionType resolvedType =
+        _tryParseType(rawType) ?? _deriveTypeFromCategory(rawCategory);
 
     return TransactionModel(
-      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id:
+          json['id']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       title: (json['title'] ?? '') as String,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       category: rawCategory,
@@ -110,23 +113,34 @@ class TransactionModel {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, amount, category, date, imagePath, imageBase64, type);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    amount,
+    category,
+    date,
+    imagePath,
+    imageBase64,
+    type,
+  );
 
   static TransactionType? _tryParseType(String? rawType) {
     if (rawType == null) return null;
     try {
-      return TransactionType.values.firstWhere((type) => type.name == rawType);
+      return TransactionType.values.firstWhere(
+        (t) => t.name == rawType || t.toString().split('.').last == rawType,
+      );
     } catch (_) {
       return null;
     }
   }
 
   static TransactionType _deriveTypeFromCategory(String category) {
-    final lowerCategory = category.toLowerCase();
-    if (lowerCategory.contains('gaji') ||
-        lowerCategory.contains('bonus') ||
-        lowerCategory.contains('income') ||
-        lowerCategory.contains('pendapatan')) {
+    final lower = category.toLowerCase();
+    if (lower.contains('gaji') ||
+        lower.contains('bonus') ||
+        lower.contains('income') ||
+        lower.contains('pendapatan')) {
       return TransactionType.pemasukan;
     }
     return TransactionType.pengeluaran;

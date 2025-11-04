@@ -13,15 +13,21 @@ class BackendClient {
   }
 
   static BackendClient? tryCreate({http.Client? client}) {
+    // Only enable the backend client when the environment explicitly sets
+    // EXPENSE_BACKEND_URL. This prevents tests and local runs from
+    // automatically creating an HttpClient and running timers when the
+    // backend is not desired or available.
     const envUrl = String.fromEnvironment('EXPENSE_BACKEND_URL', defaultValue: '');
-    final resolved = envUrl.trim().isNotEmpty ? envUrl.trim() : _defaultUrl;
-    if (resolved.isEmpty) {
+    final trimmed = envUrl.trim();
+    if (trimmed.isEmpty) {
       return null;
     }
-    return BackendClient(resolved, client: client);
+    return BackendClient(trimmed, client: client);
   }
 
-  static const String _defaultUrl = 'http://localhost:1234';
+  // Note: backend URL must be provided via EXPENSE_BACKEND_URL environment
+  // variable to enable backend features. No default URL is used to avoid
+  // creating network timers/clients during tests.
 
   final String baseUrl;
   final http.Client _client;

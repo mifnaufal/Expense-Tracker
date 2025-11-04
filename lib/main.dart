@@ -4,6 +4,8 @@ import 'screens/home_screen.dart';
 
 void main() async {
   // Pastikan inisialisasi binding
+
+  
   WidgetsFlutterBinding.ensureInitialized(); 
   // Inisialisasi lokalisasi (agar format tanggal 'd MMMM yyyy' jadi bahasa Indonesia)
   await initializeDateFormatting('id_ID', null); 
@@ -17,6 +19,7 @@ class ExpenseTrackerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Expense Tracker',
       theme: ThemeData(
         primarySwatch: Colors.indigo,

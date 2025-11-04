@@ -98,13 +98,14 @@ flutter test
 ### Alternatif
 
 Ini untuk para pengguna yang gak mau baca semuanya :)
-
+dan juga kalau semisalnya ada yang error bagian folder backend dll
 step-by-step:
 
 - flutter pub get
 - flutter pub upgrade --major-versions
 - cd backend (pastikan udah didalam projectnya rootnya)
 - dart pub get
+- dart pub upgrade --major-versions
 - dart run bin/server.dart <-- (SEKALI AJA)
 - buat terminal baru/keluar dari folder backend
 - flutter run -d chrome (atau yang biasa kamu pake buat ngerun flutter)
