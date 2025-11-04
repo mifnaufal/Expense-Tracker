@@ -15,6 +15,8 @@ class BalanceSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final currencyFormatter = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -25,71 +27,83 @@ class BalanceSummary extends StatelessWidget {
     final String incomeText = currencyFormatter.format(totalIncome);
     final String expenseText = currencyFormatter.format(totalExpense);
 
-    return Card(
-      elevation: 4.0,
-      margin: const EdgeInsets.all(16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Total Saldo',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Saldo',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
             ),
-            SizedBox(height: 8.0),
-            Text(
-              balanceText,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: totalBalance >= 0 ? Colors.green : Colors.red,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            balanceText,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
             ),
-            SizedBox(height: 20.0),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _buildIncomeExpenseColumn(
-                    'Pemasukan',
-                    incomeText,
-                    Colors.green,
-                    alignment: CrossAxisAlignment.start,
-                    textAlign: TextAlign.left,
-                    headerAlignment: MainAxisAlignment.start,
-                  ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIncomeExpenseColumn(
+                  context,
+                  title: 'Pemasukan',
+                  amount: incomeText,
+                  color: colorScheme.tertiary,
+                  icon: Icons.arrow_upward,
+                  alignment: CrossAxisAlignment.start,
+                  textAlign: TextAlign.left,
+                  headerAlignment: MainAxisAlignment.start,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildIncomeExpenseColumn(
-                    'Pengeluaran',
-                    expenseText,
-                    Colors.red,
-                    alignment: CrossAxisAlignment.end,
-                    textAlign: TextAlign.right,
-                    headerAlignment: MainAxisAlignment.end,
-                  ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildIncomeExpenseColumn(
+                  context,
+                  title: 'Pengeluaran',
+                  amount: expenseText,
+                  color: colorScheme.error,
+                  icon: Icons.arrow_downward,
+                  alignment: CrossAxisAlignment.end,
+                  textAlign: TextAlign.right,
+                  headerAlignment: MainAxisAlignment.end,
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildIncomeExpenseColumn(
-    String title,
-    String amount,
-    Color color, {
+    BuildContext context, {
+    required String title,
+    required String amount,
+    required Color color,
+    required IconData icon,
     CrossAxisAlignment alignment = CrossAxisAlignment.start,
     TextAlign textAlign = TextAlign.left,
     MainAxisAlignment headerAlignment = MainAxisAlignment.start,
   }) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: alignment,
       children: [
@@ -97,25 +111,24 @@ class BalanceSummary extends StatelessWidget {
           mainAxisAlignment: headerAlignment,
           children: [
             Icon(
-              title == 'Pemasukan'
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward,
+              icon,
               color: color,
-              size: 16,
+              size: 18,
             ),
-            SizedBox(width: 4),
+            const SizedBox(width: 6),
             Text(
               title,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.75),
+              ),
             ),
           ],
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           amount,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
             color: color,
           ),
           textAlign: textAlign,

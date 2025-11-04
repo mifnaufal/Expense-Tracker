@@ -24,44 +24,47 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... (logic warna dan ikon tidak berubah) ...
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final bool isExpense = transaction.type == TransactionType.pengeluaran;
-    final Color amountColor = isExpense ? Colors.red : Colors.green;
+    final Color amountColor =
+        isExpense ? colorScheme.error : colorScheme.tertiary;
     final IconData iconData =
         isExpense ? Icons.arrow_downward : Icons.arrow_upward;
     final String prefix = isExpense ? '- Rp' : '+ Rp';
     final bool hasActions = onEdit != null || onDelete != null;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: amountColor.withValues(alpha: 0.1),
+          backgroundColor: amountColor.withValues(alpha: 0.12),
           child: Icon(
             iconData,
             color: amountColor,
-            size: 24,
+            size: 20,
           ),
         ),
         title: Text(
-          transaction.title, // 'Makan Siang'
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          transaction.title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         subtitle: Text(
-          // Gunakan category jika ingin, atau tetap tanggal
           '${transaction.category} • ${DateFormat('d MMM yyyy').format(transaction.date)}',
-          style: TextStyle(color: Colors.grey[600]),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               '$prefix ${transaction.amount.toStringAsFixed(0)}',
-              style: TextStyle(
+              style: theme.textTheme.titleSmall?.copyWith(
                 color: amountColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (hasActions) ...[
@@ -91,7 +94,7 @@ class TransactionCard extends StatelessWidget {
                     ),
                 ],
               ),
-            ]
+            ],
           ],
         ),
         onTap: () => _showAttachment(context),
@@ -106,8 +109,8 @@ class TransactionCard extends StatelessWidget {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          content: Image.memory(bytes),
           title: const Text('Bukti Transaksi'),
+          content: Image.memory(bytes),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
@@ -129,7 +132,7 @@ class TransactionCard extends StatelessWidget {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('File gambar tidak ditemukan di path: $imagePath'),
+            content: Text('File gambar tidak ditemukan di $imagePath'),
           ),
         );
       return;
@@ -151,8 +154,8 @@ class TransactionCard extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        content: Image.memory(fallbackBytes),
         title: const Text('Bukti Transaksi'),
+        content: Image.memory(fallbackBytes),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),

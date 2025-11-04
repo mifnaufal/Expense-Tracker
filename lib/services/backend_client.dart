@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class BackendClient {
+  static bool _disableDefaultClient = false;
+
   BackendClient._(this.baseUrl, {http.Client? client})
       : _client = client ?? http.Client();
 
@@ -13,21 +15,26 @@ class BackendClient {
   }
 
   static BackendClient? tryCreate({http.Client? client}) {
-    // Only enable the backend client when the environment explicitly sets
-    // EXPENSE_BACKEND_URL. This prevents tests and local runs from
-    // automatically creating an HttpClient and running timers when the
-    // backend is not desired or available.
+    if (_disableDefaultClient) {
+      return null;
+    }
     const envUrl = String.fromEnvironment('EXPENSE_BACKEND_URL', defaultValue: '');
     final trimmed = envUrl.trim();
     if (trimmed.isEmpty) {
-      return null;
+      if (kReleaseMode) {
+        return null;
+      }
+      return BackendClient(_defaultUrl, client: client);
     }
     return BackendClient(trimmed, client: client);
   }
 
-  // Note: backend URL must be provided via EXPENSE_BACKEND_URL environment
-  // variable to enable backend features. No default URL is used to avoid
-  // creating network timers/clients during tests.
+  @visibleForTesting
+  static void disableDefaultClientForTesting([bool disable = true]) {
+    _disableDefaultClient = disable;
+  }
+
+  static const String _defaultUrl = 'http://localhost:1234';
 
   final String baseUrl;
   final http.Client _client;

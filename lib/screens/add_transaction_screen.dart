@@ -55,6 +55,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   bool get _isEditing => widget.initialTransaction != null;
   bool get _isCustomCategory => _selectedCategory == _otherCategoryLabel;
+  bool get _supportsCamera {
+    if (kIsWeb) {
+      return false;
+    }
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   @override
   void initState() {
@@ -137,9 +149,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
+      if (source == ImageSource.camera && !_supportsCamera) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Kamera tidak tersedia di perangkat ini.'),
+            ),
+          );
+        return;
+      }
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
         maxWidth: 600,
+        preferredCameraDevice: CameraDevice.rear,
       );
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
@@ -163,24 +187,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: <Widget>[
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galeri'),
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Pilih dari Galeri'),
               onTap: () {
+                Navigator.of(ctx).pop();
                 _pickImage(ImageSource.gallery);
-                Navigator.of(ctx).pop();
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera),
-              title: const Text('Kamera'),
-              onTap: () {
-                _pickImage(ImageSource.camera);
-                Navigator.of(ctx).pop();
-              },
-            ),
+            if (_supportsCamera)
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Ambil Foto'),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.no_photography_outlined),
+                title: const Text('Kamera tidak tersedia'),
+                subtitle: const Text('Gunakan galeri untuk mengunggah bukti.'),
+                enabled: false,
+              ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -412,28 +446,30 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      border: Border.all(width: 1, color: Colors.grey),
+                      color: Theme.of(context).colorScheme.surface,
+                      border: Border.all(
+                        width: 1,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outlineVariant,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: _buildImagePreview(),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.camera_alt),
-                      label: const Text('Ambil Foto'),
+                    child: FilledButton.tonalIcon(
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      label: const Text('Lampirkan Bukti'),
                       onPressed: _showImageSourceActionSheet,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _isSubmitting ? null : _submitData,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
                 child: _isSubmitting
                     ? const SizedBox(
                         height: 24,

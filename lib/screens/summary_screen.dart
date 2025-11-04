@@ -47,7 +47,6 @@ class SummaryScreen extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Ringkasan Keuangan'),
@@ -64,6 +63,7 @@ class SummaryScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
               _buildTotalsCard(
+                context: context,
                 title: 'Ringkasan Hari Ini',
                 income: todayIncome,
                 expense: todayExpense,
@@ -71,6 +71,7 @@ class SummaryScreen extends StatelessWidget {
               ),
               SizedBox(height: 12),
               _buildTotalsCard(
+                context: context,
                 title: 'Ringkasan 7 Hari Terakhir',
                 income: weekIncome,
                 expense: weekExpense,
@@ -92,47 +93,57 @@ class SummaryScreen extends StatelessWidget {
   }
 
   Widget _buildTotalsCard({
+    required BuildContext context,
     required String title,
     required double income,
     required double expense,
     required NumberFormat currency,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final double netBalance = income - expense;
-    final Color netColor = netBalance >= 0 ? Colors.green : Colors.red;
+    final Color netColor =
+        netBalance >= 0 ? colorScheme.tertiary : colorScheme.error;
 
     return Card(
-      elevation: 2,
+      color: colorScheme.surface,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface.withValues(alpha: 0.75),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               currency.format(netBalance),
-              style: TextStyle(
-                fontSize: 24,
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: netColor,
               ),
             ),
             const SizedBox(height: 12),
             _buildMetricRow(
+              context: context,
               label: 'Pemasukan',
               amount: income,
-              color: Colors.green,
+              color: colorScheme.tertiary,
               icon: Icons.arrow_upward,
               currency: currency,
             ),
             const SizedBox(height: 8),
             _buildMetricRow(
+              context: context,
               label: 'Pengeluaran',
               amount: expense,
-              color: Colors.red,
+              color: colorScheme.error,
               icon: Icons.arrow_downward,
               currency: currency,
             ),
@@ -143,12 +154,15 @@ class SummaryScreen extends StatelessWidget {
   }
 
   Widget _buildMetricRow({
+    required BuildContext context,
     required String label,
     required double amount,
     required Color color,
     required IconData icon,
     required NumberFormat currency,
   }) {
+    final theme = Theme.of(context);
+
     return Row(
       children: [
         Container(
@@ -163,12 +177,18 @@ class SummaryScreen extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+            ),
           ),
         ),
         Text(
           currency.format(amount),
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: color),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
         ),
       ],
     );
