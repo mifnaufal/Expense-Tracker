@@ -1,14 +1,26 @@
+
+
+// ignore: unused_import
+import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
+
+enum TransactionType {
+  pemasukan,
+  pengeluaran,
+}
 enum TransactionType { pemasukan, pengeluaran }
 
 class TransactionModel {
   final String id;
   final String title;
   final double amount;
+  final String category; 
   final String category;
   final DateTime date;
+  final String? imagePath; 
+  final TransactionType type; 
   final String? imagePath;
   final String? imageBase64;
   final TransactionType type;
@@ -24,12 +36,31 @@ class TransactionModel {
     required this.type,
   });
 
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    
+    
+    final String category = json['category'];
+    TransactionType derivedType = TransactionType.pengeluaran; 
+
+    if (category.toLowerCase() == 'gaji' || category.toLowerCase() == 'bonus') {
+      derivedType = TransactionType.pemasukan;
+    }
     final String rawCategory = (json['category'] ?? '') as String;
     final String? rawType = json['type'] as String?;
     final TransactionType resolvedType = _tryParseType(rawType) ?? _deriveTypeFromCategory(rawCategory);
 
     return TransactionModel(
+      id: json['id'],
+      title: json['title'],
+      amount: (json['amount'] as num).toDouble(), 
+      category: category,
+      date: DateTime.parse(json['date']), 
+      imagePath: json['imagePath'],
+      type: derivedType, 
+    );
+  }
+
       id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: (json['title'] ?? '') as String,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
@@ -51,8 +82,10 @@ class TransactionModel {
       'title': title,
       'amount': amount,
       'category': category,
+      'date': date.toIso8601String(), 
       'date': date.toIso8601String(),
       'imagePath': imagePath,
+    };
       'imageBase64': imageBase64,
       'type': type.name,
     };
