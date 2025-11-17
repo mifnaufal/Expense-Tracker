@@ -179,8 +179,26 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showPersistenceFeedback(String baseMessage, String storagePath) {
-    _showSnackBar('$baseMessage (tersimpan lokal)');
+    final locationDescription = _describeStoragePath(storagePath);
+    _showSnackBar('$baseMessage ($locationDescription)');
     debugPrint('Data disimpan di: $storagePath');
+  }
+
+  String _describeStoragePath(String storagePath) {
+    if (storagePath.isEmpty) {
+      return 'lokasi tidak diketahui';
+    }
+
+    final normalized = storagePath.trim();
+    if (normalized.startsWith('http')) {
+      return 'tersimpan di backend';
+    }
+
+    if (normalized.startsWith('web-local-storage')) {
+      return 'tersimpan di penyimpanan browser';
+    }
+
+    return 'tersimpan lokal di $normalized';
   }
 
   void _navigateToSummaryScreen() {
