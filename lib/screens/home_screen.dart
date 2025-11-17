@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../models/transaction_model.dart';
 import '../services/local_storage_service.dart';
 import '../widgets/balance_summary.dart';
@@ -15,17 +14,34 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<TransactionModel> _transactions = [];
   bool _isLoading = true;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   final LocalStorageService _storageService = LocalStorageService();
 
   @override
   void initState() {
     super.initState();
-    // 3. Panggil fungsi load data saat screen pertama kali dibuka
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -37,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     _setTransactions(loadedTransactions);
+    _animationController.forward();
   }
 
   void _setTransactions(List<TransactionModel> transactions) {
@@ -48,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // (Fungsi kalkulasi saldo biarkan saja, akan otomatis pakai data baru)
   double get _totalIncome {
     return _transactions
         .where((tx) => tx.type == TransactionType.pemasukan)
@@ -151,6 +167,9 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: const Text('Hapus Transaksi'),
         content: Text(
           'Apakah kamu yakin ingin menghapus "${transaction.title}"?',
@@ -160,11 +179,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Batal'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
               await _deleteTransaction(transaction.id);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Hapus'),
           ),
         ],
@@ -175,7 +198,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
   }
 
   void _showPersistenceFeedback(String baseMessage, String storagePath) {
@@ -199,96 +230,214 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: const Text('Expense Tracker'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart_outlined),
-            onPressed:
-                _transactions.isEmpty ? null : _navigateToSummaryScreen,
-            tooltip: 'Ringkasan',
+        elevation: 0,
+        backgroundColor: theme.colorScheme.background,
+        title: Text(
+          'Expense Tracker',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
           ),
-          IconButton(
-            icon: const Icon(Icons.download_outlined),
-            onPressed: _exportTransactions,
-            tooltip: 'Ekspor JSON',
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.bar_chart_outlined,
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: _transactions.isEmpty ? null : _navigateToSummaryScreen,
+              tooltip: 'Ringkasan',
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.download_outlined,
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: _exportTransactions,
+              tooltip: 'Ekspor JSON',
+            ),
           ),
         ],
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Memuat data...',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              )
             : RefreshIndicator(
                 onRefresh: _loadData,
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                        child: BalanceSummary(
-                          totalBalance: _totalBalance,
-                          totalIncome: _totalIncome,
-                          totalExpense: _totalExpense,
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Transaksi Terakhir', style: titleStyle),
-                            TextButton(
-                              onPressed: _transactions.isEmpty
-                                  ? null
-                                  : _navigateToSummaryScreen,
-                              child: const Text('Lihat Semua'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (_transactions.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: Text(
-                            'Belum ada transaksi.',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 96),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final transaction = _transactions[index];
-                              return TransactionCard(
-                                transaction: transaction,
-                                onEdit: () =>
-                                    _navigateToEditScreen(transaction),
-                                onDelete: () =>
-                                    _confirmDeleteTransaction(transaction),
-                              );
-                            },
-                            childCount: _transactions.length,
+                color: theme.colorScheme.primary,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                          child: BalanceSummary(
+                            totalBalance: _totalBalance,
+                            totalIncome: _totalIncome,
+                            totalExpense: _totalExpense,
                           ),
                         ),
                       ),
-                  ],
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Transaksi Terakhir',
+                                style: titleStyle,
+                              ),
+                              TextButton.icon(
+                                onPressed: _transactions.isEmpty
+                                    ? null
+                                    : _navigateToSummaryScreen,
+                                icon: const Icon(Icons.arrow_forward, size: 16),
+                                label: const Text('Lihat Semua'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_transactions.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 64,
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.5),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  'Belum ada transaksi.',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tekan tombol + untuk menambahkan transaksi pertama Anda',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.5),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  onPressed: _navigateToAddScreen,
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Tambah Transaksi'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor: theme.colorScheme.onPrimary,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 96),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final transaction = _transactions[index];
+                                return TransactionCard(
+                                  transaction: transaction,
+                                  onEdit: () => _navigateToEditScreen(transaction),
+                                  onDelete: () =>
+                                      _confirmDeleteTransaction(transaction),
+                                );
+                              },
+                              childCount: _transactions.length,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddScreen,
-        tooltip: 'Tambah Transaksi',
-        child: const Icon(Icons.add),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _navigateToAddScreen,
+          tooltip: 'Tambah Transaksi',
+          icon: const Icon(Icons.add),
+          label: const Text('Tambah'),
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

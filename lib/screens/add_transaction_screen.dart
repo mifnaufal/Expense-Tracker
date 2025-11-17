@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,8 @@ class AddTransactionScreen extends StatefulWidget {
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends State<AddTransactionScreen> {
+class _AddTransactionScreenState extends State<AddTransactionScreen>
+    with TickerProviderStateMixin {
   static const String _otherCategoryLabel = 'Lainnya';
   static const List<String> _predefinedCategories = [
     'Makanan',
@@ -42,6 +44,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _customCategoryController = TextEditingController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   TransactionType _selectedType = TransactionType.pengeluaran;
   DateTime _selectedDate = DateTime.now();
@@ -71,6 +75,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _animationController.forward();
+
     _selectedCategory = _predefinedCategories.first;
     final transaction = widget.initialTransaction;
     if (transaction != null) {
@@ -109,6 +125,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     _titleController.dispose();
     _amountController.dispose();
     _customCategoryController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -125,6 +142,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -154,8 +181,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              content: Text('Kamera tidak tersedia di perangkat ini.'),
+            SnackBar(
+              content: const Text('Kamera tidak tersedia di perangkat ini.'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         return;
@@ -178,7 +210,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Gagal mengambil gambar. Coba lagi.')),
+          SnackBar(
+            content: const Text('Gagal mengambil gambar. Coba lagi.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         );
     }
   }
@@ -186,36 +225,90 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   void _showImageSourceActionSheet() {
     showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Pilih dari Galeri'),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-            if (_supportsCamera)
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Pilih Sumber Gambar',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
               ListTile(
-                leading: const Icon(Icons.photo_camera_outlined),
-                title: const Text('Ambil Foto'),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.photo_library_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                title: const Text('Pilih dari Galeri'),
                 onTap: () {
                   Navigator.of(ctx).pop();
-                  _pickImage(ImageSource.camera);
+                  _pickImage(ImageSource.gallery);
                 },
-              )
-            else
-              ListTile(
-                leading: const Icon(Icons.no_photography_outlined),
-                title: const Text('Kamera tidak tersedia'),
-                subtitle: const Text('Gunakan galeri untuk mengunggah bukti.'),
-                enabled: false,
               ),
-            const SizedBox(height: 8),
-          ],
+              if (_supportsCamera)
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.photo_camera_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  title: const Text('Ambil Foto'),
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                )
+              else
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.no_photography_outlined,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  title: const Text('Kamera tidak tersedia'),
+                  subtitle: const Text('Gunakan galeri untuk mengunggah bukti.'),
+                  enabled: false,
+                ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -225,9 +318,54 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final Uint8List? bytes =
         _selectedImageBytes ?? widget.initialTransaction?.imageBytes;
     if (bytes != null) {
-      return Image.memory(bytes, fit: BoxFit.cover);
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.memory(bytes, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedImageBytes = null;
+                  _selectedImagePath = null;
+                  _existingImageBase64 = null;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+        ],
+      );
     }
-    return const Center(child: Text('Foto Bukti', textAlign: TextAlign.center));
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.receipt_long_outlined,
+          size: 40,
+          color: Theme.of(context).colorScheme.outline,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Foto Bukti',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _submitData() async {
@@ -290,8 +428,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('Gagal menyimpan transaksi. Coba lagi.'),
+          SnackBar(
+            content: const Text('Gagal menyimpan transaksi. Coba lagi.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
     }
@@ -300,185 +443,463 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Transaksi' : 'Tambah Transaksi Baru'),
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          _isEditing ? 'Edit Transaksi' : 'Tambah Transaksi Baru',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _isSubmitting ? null : _submitData,
-            tooltip: 'Simpan',
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.save, color: Colors.white),
+              onPressed: _isSubmitting ? null : _submitData,
+              tooltip: 'Simpan',
+            ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Deskripsi tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Jumlah (Rp)',
-                  prefixText: 'Rp ',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Jumlah tidak boleh kosong >:( )';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Masukkan angka yang valid >:( )';
-                  }
-                  if (double.parse(value) <= 0) {
-                    return 'Jumlah harus lebih besar dari 0 >:( )';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                key: ValueKey(_selectedCategory),
-                initialValue: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Kategori',
-                  border: OutlineInputBorder(),
-                ),
-                items: _predefinedCategories
-                    .map(
-                      (category) => DropdownMenuItem<String>(
-                        value: category,
-                        child: Text(category),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Transaction Type Toggle
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedType = TransactionType.pemasukan;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedType == TransactionType.pemasukan
+                                  ? Colors.green
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Pemasukan',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedType == TransactionType.pemasukan
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _selectedCategory = value;
-                    if (!_isCustomCategory) {
-                      _customCategoryController.clear();
-                    }
-                  });
-                },
-              ),
-              if (_isCustomCategory) ...[
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _customCategoryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Kategori Lainnya',
-                    hintText: 'Contoh: Hadiah, Freelance, dll.',
-                    border: OutlineInputBorder(),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedType = TransactionType.pengeluaran;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _selectedType == TransactionType.pengeluaran
+                                  ? Colors.red
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Pengeluaran',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: _selectedType == TransactionType.pengeluaran
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (_isCustomCategory &&
-                        (value == null || value.trim().isEmpty)) {
-                      return 'Silakan isi kategori lainnya 😁';
-                    }
-                    return null;
-                  },
                 ),
-              ],
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TransactionType>(
-                key: ValueKey(_selectedType),
-                initialValue: _selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Tipe Transaksi',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 24),
+                
+                // Amount Field
+                Text(
+                  'Jumlah',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-                items: const [
-                  DropdownMenuItem(
-                    value: TransactionType.pemasukan,
-                    child: Text('Pemasukan'),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  DropdownMenuItem(
-                    value: TransactionType.pengeluaran,
-                    child: Text('Pengeluaran'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedType = value;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Tanggal: ${DateFormat('d MMMM yyyy').format(_selectedDate)}',
-                      style: const TextStyle(fontSize: 16),
+                  child: TextFormField(
+                    controller: _amountController,
+                    decoration: InputDecoration(
+                      labelText: 'Rp 0',
+                      labelStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      prefixIcon: Container(
+                        margin: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.attach_money,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    keyboardType: TextInputType.number,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Jumlah tidak boleh kosong';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Masukkan angka yang valid';
+                      }
+                      if (double.parse(value) <= 0) {
+                        return 'Jumlah harus lebih besar dari 0';
+                      }
+                      return null;
+                    },
                   ),
-                  TextButton(
-                    onPressed: _presentDatePicker,
-                    child: const Text(
-                      'Pilih Tanggal',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                
+                // Description Field
+                Text(
+                  'Deskripsi',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Tambahkan deskripsi',
+                      labelStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      prefixIcon: Container(
+                        margin: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.description_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Deskripsi tidak boleh kosong';
+                      }
+                      return null;
+                    },
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
+                ),
+                const SizedBox(height: 24),
+                
+                // Category Field
+                Text(
+                  'Kategori',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey(_selectedCategory),
+                    value: _selectedCategory,
+                    decoration: InputDecoration(
+                      labelText: 'Pilih kategori',
+                      labelStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      prefixIcon: Container(
+                        margin: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.category_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    items: _predefinedCategories
+                        .map(
+                          (category) => DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        _selectedCategory = value;
+                        if (!_isCustomCategory) {
+                          _customCategoryController.clear();
+                        }
+                      });
+                    },
+                  ),
+                ),
+                if (_isCustomCategory) ...[
+                  const SizedBox(height: 16),
                   Container(
-                    width: 100,
-                    height: 100,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
-                      border: Border.all(
-                        width: 1,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outlineVariant,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: _buildImagePreview(),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton.tonalIcon(
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: const Text('Lampirkan Bukti'),
-                      onPressed: _showImageSourceActionSheet,
+                    child: TextFormField(
+                      controller: _customCategoryController,
+                      decoration: InputDecoration(
+                        labelText: 'Kategori Lainnya',
+                        hintText: 'Contoh: Hadiah, Freelance, dll.',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.edit_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      validator: (value) {
+                        if (_isCustomCategory &&
+                            (value == null || value.trim().isEmpty)) {
+                          return 'Silakan isi kategori lainnya';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 32),
-              FilledButton(
-                onPressed: _isSubmitting ? null : _submitData,
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Simpan'),
-              ),
-            ],
+                const SizedBox(height: 24),
+                
+                // Date Field
+                Text(
+                  'Tanggal',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.calendar_today_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    title: Text(
+                      DateFormat('d MMMM yyyy').format(_selectedDate),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_drop_down,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                    onTap: _presentDatePicker,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Image Field
+                Text(
+                  'Bukti Transaksi',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _buildImagePreview(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text('Pilih Gambar'),
+                    onPressed: _showImageSourceActionSheet,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _isSubmitting ? null : _submitData,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: _selectedType == TransactionType.pemasukan
+                          ? Colors.green
+                          : Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            _isEditing ? 'Perbarui Transaksi' : 'Simpan Transaksi',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
