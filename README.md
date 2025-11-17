@@ -112,4 +112,6 @@ step-by-step:
 
 note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5
 
-note 2: kalau ada error, pake flutter analyze dan kasih ai :) jika analyzenya oke tapi commandnya error gak tau dah tu
+note 2: kalau ada error, pake flutter analyze dan kasih ai :) jika analyzenya oke tapi outputnya error gak tau dah tu
+
+note 3: kasih komen kalo ngebug lo yahh
