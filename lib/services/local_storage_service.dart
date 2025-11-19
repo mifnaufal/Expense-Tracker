@@ -1,62 +1,168 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/transaction_model.dart';
-// import 'dart:io'; // (Dibutuhkan nanti untuk 'save')
-// import 'package:path_provider/path_provider.dart'; // (Dibutuhkan nanti untuk 'save')
+
+class TransactionResult {
+  final List<TransactionModel> transactions;
+  final String storagePath;
+  final String? payload;
+
+  TransactionResult({
+    required this.transactions,
+    required this.storagePath,
+    this.payload,
+  });
+}
 
 class LocalStorageService {
-  
-  // Path ke file asset JSON
-  final String _transactionsAssetPath = 'data/transactions.json';
+  static const String _fileName = 'transactions.json';
 
-  /// Membaca daftar transaksi dari file 'data/transactions.json' di assets.
-  Future<List<TransactionModel>> loadTransactions() async {
+  // ======== READ DATA ========
+  Future<List<TransactionModel>> readData() async {
     try {
-      // 1. Baca file JSON sebagai String dari assets
-      final String jsonString = await rootBundle.loadString(_transactionsAssetPath);
-      
-      // 2. Decode String JSON menjadi List<dynamic>
-      final List<dynamic> jsonList = json.decode(jsonString) as List;
-      
-      // 3. Ubah setiap item di List menjadi TransactionModel
-      List<TransactionModel> transactions = jsonList.map((jsonItem) {
-        return TransactionModel.fromJson(jsonItem as Map<String, dynamic>);
-      }).toList();
-      
-      return transactions;
-
+      if (kIsWeb) {
+        // 🔹 Simpan di browser (Web)
+        final prefs = await SharedPreferences.getInstance();
+        final data = prefs.getString('transactions') ?? '[]';
+        final List<dynamic> jsonList = json.decode(data);
+        return jsonList.map((json) => TransactionModel.fromJson(json)).toList();
+      } else {
+        // 🔹 Simpan di file (Android/iOS/Desktop)
+        final file = await _localFile;
+        if (!await file.exists()) return [];
+        final contents = await file.readAsString();
+        final List<dynamic> jsonList = json.decode(contents);
+        return jsonList.map((json) => TransactionModel.fromJson(json)).toList();
+      }
     } catch (e) {
-      // Tangani error jika file tidak ditemukan atau format JSON salah
-      print('Error loading transactions from asset: $e');
-      return []; // Kembalikan list kosong jika gagal
+      debugPrint('Error reading data: $e');
+      return [];
     }
   }
 
-  /// Menyimpan daftar transaksi ke device storage.
-  /// (Belum diimplementasi penuh)
-  Future<void> saveTransactions(List<TransactionModel> transactions) async {
-    // PENTING: Kita tidak bisa MENULIS KEMBALI ke folder 'assets'.
-    // 'Assets' bersifat read-only setelah aplikasi di-build.
-    
-    // TODO: Implementasi penyimpanan ke device.
-    // 1. Dapatkan path direktori dokumen aplikasi (pakai package 'path_provider')
-    //    final directory = await getApplicationDocumentsDirectory();
-    //    final path = '${directory.path}/transactions.json';
-    // 2. Ubah List<TransactionModel> ke List<Map>
-    //    final List<Map<String, dynamic>> jsonList = 
-    //        transactions.map((tx) => tx.toJson()).toList();
-    // 3. Encode ke string JSON
-    //    final String jsonString = json.encode(jsonList);
-    // 4. Tulis string ke file
-    //    final file = File(path);
-    //    await file.writeAsString(jsonString);
+  // ======== ADD DATA ========
+  Future<TransactionResult> addTransaction(TransactionModel transaction) async {
+    try {
+      final transactions = await readData();
+      transactions.add(transaction);
 
-    print('Simulasi menyimpan data... (Implementasi penuh butuh path_provider)');
+      final String jsonString =
+          json.encode(transactions.map((tx) => tx.toJson()).toList());
+
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('transactions', jsonString);
+        return TransactionResult(transactions: transactions, storagePath: 'web');
+      } else {
+        final file = await _localFile;
+        await file.writeAsString(jsonString);
+        return TransactionResult(
+          transactions: transactions,
+          storagePath: file.path,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error adding transaction: $e');
+      throw Exception('Failed to add transaction');
+    }
+  }
+
+  // ======== UPDATE DATA ========
+  Future<TransactionResult> updateTransaction(TransactionModel updatedTx) async {
+    try {
+      final transactions = await readData();
+      final index = transactions.indexWhere((tx) => tx.id == updatedTx.id);
+
+      if (index != -1) {
+        transactions[index] = updatedTx;
+      }
+
+      final String jsonString =
+          json.encode(transactions.map((tx) => tx.toJson()).toList());
+
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('transactions', jsonString);
+        return TransactionResult(transactions: transactions, storagePath: 'web');
+      } else {
+        final file = await _localFile;
+        await file.writeAsString(jsonString);
+        return TransactionResult(
+          transactions: transactions,
+          storagePath: file.path,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updating transaction: $e');
+      throw Exception('Failed to update transaction');
+    }
+  }
+
+  // ======== DELETE DATA ========
+  Future<TransactionResult> deleteTransaction(String id) async {
+    try {
+      final transactions = await readData();
+      transactions.removeWhere((tx) => tx.id == id);
+
+      final String jsonString =
+          json.encode(transactions.map((tx) => tx.toJson()).toList());
+
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('transactions', jsonString);
+        return TransactionResult(transactions: transactions, storagePath: 'web');
+      } else {
+        final file = await _localFile;
+        await file.writeAsString(jsonString);
+        return TransactionResult(
+          transactions: transactions,
+          storagePath: file.path,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error deleting transaction: $e');
+      throw Exception('Failed to delete transaction');
+    }
+  }
+
+  // ======== EXPORT DATA ========
+  Future<TransactionResult> exportTransactions() async {
+    try {
+      final transactions = await readData();
+      final String jsonString =
+          json.encode(transactions.map((tx) => tx.toJson()).toList());
+
+      if (kIsWeb) {
+        return TransactionResult(
+          transactions: transactions,
+          storagePath: 'web',
+          payload: jsonString,
+        );
+      } else {
+        final file = await _localFile;
+        return TransactionResult(
+          transactions: transactions,
+          storagePath: file.path,
+          payload: jsonString,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error exporting transactions: $e');
+      throw Exception('Failed to export transactions');
+    }
+  }
+
+  // ======== PRIVATE HELPERS ========
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/$_fileName');
   }
 }

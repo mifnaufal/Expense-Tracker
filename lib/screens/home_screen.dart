@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/transaction_model.dart';
 import '../services/local_storage_service.dart';
@@ -18,24 +19,18 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<TransactionModel> _transactions = [];
   bool _isLoading = true;
-
   final LocalStorageService _storageService = LocalStorageService();
 
   @override
   void initState() {
     super.initState();
-    // 3. Panggil fungsi load data saat screen pertama kali dibuka
     _loadData();
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     final loadedTransactions = await _storageService.readData();
     if (!mounted) return;
-
     _setTransactions(loadedTransactions);
   }
 
@@ -48,55 +43,25 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // (Fungsi kalkulasi saldo biarkan saja, akan otomatis pakai data baru)
-  double get _totalIncome {
-    return _transactions
-        .where((tx) => tx.type == TransactionType.pemasukan)
-        .fold(0.0, (sum, item) => sum + item.amount);
-  }
+  double get _totalIncome => _transactions
+      .where((tx) => tx.type == TransactionType.pemasukan)
+      .fold(0.0, (sum, item) => sum + item.amount);
 
-  double get _totalExpense {
-    return _transactions
-        .where((tx) => tx.type == TransactionType.pengeluaran)
-        .fold(0.0, (sum, item) => sum + item.amount);
-  }
+  double get _totalExpense => _transactions
+      .where((tx) => tx.type == TransactionType.pengeluaran)
+      .fold(0.0, (sum, item) => sum + item.amount);
 
-  double get _totalBalance {
-    return _totalIncome - _totalExpense;
-  }
+  double get _totalBalance => _totalIncome - _totalExpense;
 
   Future<void> _addTransaction(TransactionModel newTx) async {
     try {
       final result = await _storageService.addTransaction(newTx);
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil ditambahkan', result.storagePath);
+      _showSnackBar('Transaksi berhasil ditambahkan ✅');
     } catch (e) {
-      if (!mounted) return;
-      debugPrint('Gagal menambahkan transaksi: $e');
       _showSnackBar('Gagal menambahkan transaksi: $e');
     }
-  }
-
-  void _navigateToAddScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => AddTransactionScreen(
-          onSubmit: _addTransaction,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToEditScreen(TransactionModel transaction) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => AddTransactionScreen(
-          initialTransaction: transaction,
-          onSubmit: _editTransaction,
-        ),
-      ),
-    );
   }
 
   Future<void> _editTransaction(TransactionModel updatedTransaction) async {
@@ -104,21 +69,19 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await _storageService.updateTransaction(updatedTransaction);
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil diperbarui', result.storagePath);
+      _showSnackBar('Transaksi diperbarui ✅');
     } catch (e) {
-      if (!mounted) return;
       _showSnackBar('Gagal memperbarui transaksi');
     }
   }
 
-  Future<void> _deleteTransaction(String transactionId) async {
+  Future<void> _deleteTransaction(String id) async {
     try {
-      final result = await _storageService.deleteTransaction(transactionId);
+      final result = await _storageService.deleteTransaction(id);
       if (!mounted) return;
       _setTransactions(result.transactions);
-      _showPersistenceFeedback('Transaksi berhasil dihapus', result.storagePath);
+      _showSnackBar('Transaksi dihapus 🗑️');
     } catch (e) {
-      if (!mounted) return;
       _showSnackBar('Gagal menghapus transaksi');
     }
   }
@@ -126,52 +89,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _exportTransactions() async {
     try {
       final exportResult = await _storageService.exportTransactions();
-      if (!mounted) return;
-
-      await Clipboard.setData(ClipboardData(text: exportResult.payload));
-      _showSnackBar('Data transaksi disalin ke clipboard');
-      debugPrint('Lokasi penyimpanan saat ini: ${exportResult.storagePath}');
+      await Clipboard.setData(ClipboardData(text: exportResult.payload ?? ''));
+      _showSnackBar('Data disalin ke clipboard 📋');
     } catch (e) {
-      if (!mounted) return;
-      debugPrint('Gagal mengekspor transaksi: $e');
-      _showSnackBar('Gagal mengekspor transaksi: $e');
+      _showSnackBar('Gagal mengekspor transaksi');
     }
   }
 
-  void _confirmDeleteTransaction(TransactionModel transaction) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hapus Transaksi'),
-        content: Text('Apakah kamu yakin ingin menghapus "${transaction.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await _deleteTransaction(transaction.id);
-            },
-            child: const Text('Hapus'),
-          ),
-        ],
+  void _navigateToAddScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => AddTransactionScreen(onSubmit: _addTransaction),
       ),
     );
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-  }
-
-  void _showPersistenceFeedback(String baseMessage, String storagePath) {
-    _showSnackBar('$baseMessage (tersimpan lokal)');
-    debugPrint('Data disimpan di: $storagePath');
   }
 
   void _navigateToSummaryScreen() {
@@ -182,84 +112,117 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Expense Tracker'),
+  void _confirmDelete(TransactionModel tx) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus Transaksi'),
+        content: Text('Yakin ingin menghapus "${tx.title}"?'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.bar_chart),
-            onPressed: _navigateToSummaryScreen,
-            tooltip: 'Ringkasan',
-          ),
-          IconButton(
-            icon: Icon(Icons.download),
-            onPressed: _exportTransactions,
-            tooltip: 'Ekspor JSON',
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _deleteTransaction(tx.id);
+            },
+            child: const Text('Hapus'),
           ),
         ],
       ),
-      // 5. Tampilkan loading indicator jika data sedang dimuat
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // 1. Total Saldo
-                BalanceSummary(
-                  totalBalance: _totalBalance,
-                  totalIncome: _totalIncome,
-                  totalExpense: _totalExpense,
-                ),
-                // 2. Judul Daftar Transaksi
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Transaksi Terakhir',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _navigateToSummaryScreen,
-                        child: Text('Lihat Semua'),
-                      )
-                    ],
-                  ),
-                ),
-                // 3. Daftar Transaksi (Scrollable)
-                Expanded(
-                  child: _transactions.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Belum ada transaksi.',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _transactions.length,
-                          itemBuilder: (ctx, index) {
-                            final transaction = _transactions[index];
-                            return TransactionCard(
-                              transaction: transaction,
-                              onEdit: () => _navigateToEditScreen(transaction),
-                              onDelete: () => _confirmDeleteTransaction(transaction),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddScreen,
-        tooltip: 'Tambah Transaksi',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  void _showSnackBar(String msg) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final balanceColor = _totalBalance >= 0 ? Colors.green.shade400 : Colors.orange.shade400;
+    final formattedBalance = _totalBalance.toStringAsFixed(0);
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: Text('FinTrack', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        actions: [
+          IconButton(icon: const Icon(Icons.bar_chart_rounded), onPressed: _navigateToSummaryScreen),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        colors: [balanceColor.withOpacity(0.9), balanceColor.withOpacity(0.7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(color: balanceColor.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 6)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Saldo Saat Ini', style: GoogleFonts.poppins(color: Colors.white70)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Rp $formattedBalance',
+                          style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Pemasukan: Rp ${_totalIncome.toStringAsFixed(0)}',
+                                style: const TextStyle(color: Colors.white70)),
+                            Text('Pengeluaran: Rp ${_totalExpense.toStringAsFixed(0)}',
+                                style: const TextStyle(color: Colors.white70)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Transaksi Terakhir', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  if (_transactions.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text('Belum ada transaksi.', style: TextStyle(color: Colors.grey)),
+                      ),
+                    )
+                  else
+                    ..._transactions.map(
+                      (tx) => TransactionCard(
+                        transaction: tx,
+                        onEdit: () => _navigateToAddScreen(),
+                        onDelete: () => _confirmDelete(tx),
+                      ),
+                    ),
+                ],
+              ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToAddScreen,
+        backgroundColor: balanceColor,
+        label: const Text('Tambah Transaksi'),
+        icon: const Icon(Icons.add),
+      ),
     );
   }
 }
