@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
 
-=======
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
 import '../models/transaction_model.dart';
 import '../services/local_storage_service.dart';
 import '../widgets/balance_summary.dart';
@@ -22,30 +19,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<TransactionModel> _transactions = [];
   bool _isLoading = true;
-<<<<<<< HEAD
-=======
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
   final LocalStorageService _storageService = LocalStorageService();
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-=======
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
+
     _loadData();
   }
 
@@ -72,17 +63,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
-<<<<<<< HEAD
   double get _totalIncome => _transactions
       .where((tx) => tx.type == TransactionType.pemasukan)
       .fold(0.0, (sum, item) => sum + item.amount);
-=======
-  double get _totalIncome {
-    return _transactions
-        .where((tx) => tx.type == TransactionType.pemasukan)
-        .fold(0.0, (sum, item) => sum + item.amount);
-  }
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
 
   double get _totalExpense => _transactions
       .where((tx) => tx.type == TransactionType.pengeluaran)
@@ -95,21 +78,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final result = await _storageService.addTransaction(newTx);
       if (!mounted) return;
       _setTransactions(result.transactions);
-<<<<<<< HEAD
       _showSnackBar('Transaksi berhasil ditambahkan ✅');
-=======
       _showPersistenceFeedback(
         'Transaksi berhasil ditambahkan',
         result.storagePath,
       );
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
     } catch (e) {
       _showSnackBar('Gagal menambahkan transaksi: $e');
     }
   }
 
-<<<<<<< HEAD
-=======
+  Future<void> _editTransaction(TransactionModel updatedTransaction) async {
+    try {
+      final result = await _storageService.updateTransaction(
+        updatedTransaction,
+      );
+      if (!mounted) return;
+      _setTransactions(result.transactions);
+      _showSnackBar('Transaksi diperbarui ✅');
+      _showPersistenceFeedback(
+        'Transaksi berhasil diperbarui',
+        result.storagePath,
+      );
+    } catch (e) {
+      _showSnackBar('Gagal memperbarui transaksi: $e');
+    }
+  }
+
+  Future<void> _deleteTransaction(String id) async {
+    try {
+      final result = await _storageService.deleteTransaction(id);
+      if (!mounted) return;
+      _setTransactions(result.transactions);
+      _showSnackBar('Transaksi dihapus 🗑️');
+      _showPersistenceFeedback(
+        'Transaksi berhasil dihapus',
+        result.storagePath,
+      );
+    } catch (e) {
+      _showSnackBar('Gagal menghapus transaksi: $e');
+    }
+  }
+
+  Future<void> _exportTransactions() async {
+    try {
+      final exportResult = await _storageService.exportTransactions();
+      final payload = exportResult.payload ?? '';
+      await Clipboard.setData(ClipboardData(text: payload));
+      _showSnackBar('Data disalin ke clipboard 📋');
+    } catch (e) {
+      _showSnackBar('Gagal mengekspor transaksi: $e');
+    }
+  }
+
   void _navigateToAddScreen() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -129,63 +150,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
-  Future<void> _editTransaction(TransactionModel updatedTransaction) async {
-    try {
-      final result = await _storageService.updateTransaction(
-        updatedTransaction,
-      );
-      if (!mounted) return;
-      _setTransactions(result.transactions);
-<<<<<<< HEAD
-      _showSnackBar('Transaksi diperbarui ✅');
-=======
-      _showPersistenceFeedback(
-        'Transaksi berhasil diperbarui',
-        result.storagePath,
-      );
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
-    } catch (e) {
-      _showSnackBar('Gagal memperbarui transaksi');
-    }
-  }
-
-  Future<void> _deleteTransaction(String id) async {
-    try {
-      final result = await _storageService.deleteTransaction(id);
-      if (!mounted) return;
-      _setTransactions(result.transactions);
-<<<<<<< HEAD
-      _showSnackBar('Transaksi dihapus 🗑️');
-=======
-      _showPersistenceFeedback(
-        'Transaksi berhasil dihapus',
-        result.storagePath,
-      );
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
-    } catch (e) {
-      _showSnackBar('Gagal menghapus transaksi');
-    }
-  }
-
-  Future<void> _exportTransactions() async {
-    try {
-      final exportResult = await _storageService.exportTransactions();
-      await Clipboard.setData(ClipboardData(text: exportResult.payload ?? ''));
-      _showSnackBar('Data disalin ke clipboard 📋');
-    } catch (e) {
-      _showSnackBar('Gagal mengekspor transaksi');
-    }
-  }
-
-  void _navigateToAddScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => AddTransactionScreen(onSubmit: _addTransaction),
-      ),
-    );
-  }
-
   void _navigateToSummaryScreen() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -194,23 +158,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _confirmDelete(TransactionModel tx) {
+  void _confirmDeleteTransaction(TransactionModel transaction) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Hapus Transaksi'),
-<<<<<<< HEAD
-        content: Text('Yakin ingin menghapus "${tx.title}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _deleteTransaction(tx.id);
-=======
         content: Text(
           'Apakah kamu yakin ingin menghapus "${transaction.title}"?',
         ),
@@ -223,7 +176,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             onPressed: () async {
               Navigator.of(ctx).pop();
               await _deleteTransaction(transaction.id);
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -237,20 +189,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showSnackBar(String msg) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-<<<<<<< HEAD
-      ..showSnackBar(SnackBar(content: Text(msg)));
-=======
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(msg)));
   }
 
   void _showPersistenceFeedback(String baseMessage, String storagePath) {
@@ -260,121 +201,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   String _describeStoragePath(String storagePath) {
-    if (storagePath.isEmpty) {
-      return 'lokasi tidak diketahui';
-    }
-
+    if (storagePath.isEmpty) return 'lokasi tidak diketahui';
     final normalized = storagePath.trim();
-    if (normalized.startsWith('http')) {
-      return 'tersimpan di backend';
-    }
-
-    if (normalized.startsWith('web-local-storage')) {
+    if (normalized.startsWith('http')) return 'tersimpan di backend';
+    if (normalized.startsWith('web-local-storage'))
       return 'tersimpan di penyimpanan browser';
-    }
-
     return 'tersimpan lokal di $normalized';
-  }
-
-  void _navigateToSummaryScreen() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => SummaryScreen(transactions: _transactions),
-      ),
-    );
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
   }
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final balanceColor = _totalBalance >= 0 ? Colors.green.shade400 : Colors.orange.shade400;
-    final formattedBalance = _totalBalance.toStringAsFixed(0);
-
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text('FinTrack', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        actions: [
-          IconButton(icon: const Icon(Icons.bar_chart_rounded), onPressed: _navigateToSummaryScreen),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeOut,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                        colors: [balanceColor.withOpacity(0.9), balanceColor.withOpacity(0.7)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(color: balanceColor.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 6)),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Saldo Saat Ini', style: GoogleFonts.poppins(color: Colors.white70)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Rp $formattedBalance',
-                          style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Pemasukan: Rp ${_totalIncome.toStringAsFixed(0)}',
-                                style: const TextStyle(color: Colors.white70)),
-                            Text('Pengeluaran: Rp ${_totalExpense.toStringAsFixed(0)}',
-                                style: const TextStyle(color: Colors.white70)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Transaksi Terakhir', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  if (_transactions.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.0),
-                        child: Text('Belum ada transaksi.', style: TextStyle(color: Colors.grey)),
-                      ),
-                    )
-                  else
-                    ..._transactions.map(
-                      (tx) => TransactionCard(
-                        transaction: tx,
-                        onEdit: () => _navigateToAddScreen(),
-                        onDelete: () => _confirmDelete(tx),
-                      ),
-                    ),
-                ],
-              ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToAddScreen,
-        backgroundColor: balanceColor,
-        label: const Text('Tambah Transaksi'),
-        icon: const Icon(Icons.add),
-=======
     final theme = Theme.of(context);
-    final titleStyle = theme.textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.w700,
-    );
+    final balanceColor = _totalBalance >= 0
+        ? Colors.green.shade400
+        : Colors.orange.shade400;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -383,41 +223,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         backgroundColor: theme.colorScheme.background,
         title: Text(
           'Expense Tracker',
-          style: theme.textTheme.headlineSmall?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
           ),
         ),
+        centerTitle: true,
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.bar_chart_outlined,
-                color: theme.colorScheme.onSurface,
-              ),
-              onPressed: _transactions.isEmpty ? null : _navigateToSummaryScreen,
-              tooltip: 'Ringkasan',
-            ),
+          IconButton(
+            icon: const Icon(Icons.bar_chart_outlined),
+            onPressed: _transactions.isEmpty ? null : _navigateToSummaryScreen,
+            tooltip: 'Ringkasan',
           ),
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.download_outlined,
-                color: theme.colorScheme.onSurface,
-              ),
-              onPressed: _exportTransactions,
-              tooltip: 'Ekspor JSON',
-            ),
+          IconButton(
+            icon: const Icon(Icons.download_outlined),
+            onPressed: _exportTransactions,
+            tooltip: 'Ekspor JSON',
           ),
         ],
       ),
@@ -427,10 +248,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
+                    CircularProgressIndicator(color: theme.colorScheme.primary),
+                    const SizedBox(height: 12),
                     Text(
                       'Memuat data...',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -450,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     slivers: [
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                           child: BalanceSummary(
                             totalBalance: _totalBalance,
                             totalIncome: _totalIncome,
@@ -466,7 +285,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             children: [
                               Text(
                                 'Transaksi Terakhir',
-                                style: titleStyle,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               TextButton.icon(
                                 onPressed: _transactions.isEmpty
@@ -474,9 +295,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     : _navigateToSummaryScreen,
                                 icon: const Icon(Icons.arrow_forward, size: 16),
                                 label: const Text('Lihat Semua'),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: theme.colorScheme.primary,
-                                ),
                               ),
                             ],
                           ),
@@ -524,17 +342,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   onPressed: _navigateToAddScreen,
                                   icon: const Icon(Icons.add),
                                   label: const Text('Tambah Transaksi'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: theme.colorScheme.primary,
-                                    foregroundColor: theme.colorScheme.onPrimary,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),
@@ -542,20 +349,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         )
                       else
                         SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 96),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
                           sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final transaction = _transactions[index];
-                                return TransactionCard(
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final transaction = _transactions[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: TransactionCard(
                                   transaction: transaction,
-                                  onEdit: () => _navigateToEditScreen(transaction),
+                                  onEdit: () =>
+                                      _navigateToEditScreen(transaction),
                                   onDelete: () =>
                                       _confirmDeleteTransaction(transaction),
-                                );
-                              },
-                              childCount: _transactions.length,
-                            ),
+                                ),
+                              );
+                            }, childCount: _transactions.length),
                           ),
                         ),
                     ],
@@ -563,29 +374,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
       ),
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: _navigateToAddScreen,
-          tooltip: 'Tambah Transaksi',
-          icon: const Icon(Icons.add),
-          label: const Text('Tambah'),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
->>>>>>> de57ef109e9ea1ae1020527f4ef82d98b8efe4f8
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToAddScreen,
+        tooltip: 'Tambah Transaksi',
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
+        backgroundColor: balanceColor,
+        foregroundColor: Colors.white,
       ),
     );
   }
