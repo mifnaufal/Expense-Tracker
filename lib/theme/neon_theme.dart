@@ -1,37 +1,37 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NeonPalette {
-  static const Color midnight = Color(0xFF050915);
-  static const Color midnightSoft = Color(0xFF0B1428);
-  static const Color electricBlue = Color(0xFF3A7BD5);
-  static const Color cyanPulse = Color(0xFF13D2F2);
-  static const Color violetWave = Color(0xFF7a5AF8);
-  static const Color hotPink = Color(0xFFFF3CAC);
-  static const Color neonLime = Color(0xFFB8FF6A);
-  static const Color warningRed = Color(0xFFFF5F6D);
-  static const Color successMint = Color(0xFF2AF598);
-
-  static const Color glassOverlay = Color(0x88FFFFFF);
+  static const Color night = Color(0xFF050B16);
+  static const Color slate = Color(0xFF0F172A);
+  static const Color slateSoft = Color(0xFF141D32);
+  static const Color card = Color(0xFF1F2A44);
+  static const Color mist = Color(0xFF273352);
+  static const Color accentTeal = Color(0xFF2DD4BF);
+  static const Color accentBlue = Color(0xFF60A5FA);
+  static const Color accentLilac = Color(0xFFB4C3FF);
+  static const Color accentAmber = Color(0xFFFAC858);
+  static const Color successMint = Color(0xFF34D399);
+  static const Color warningRed = Color(0xFFF87171);
+  static const Color textPrimary = Color(0xFFE2E8F0);
+  static const Color textMuted = Color(0xFF94A3B8);
 }
 
 class NeonGradients {
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [NeonPalette.violetWave, NeonPalette.hotPink, NeonPalette.cyanPulse],
+    colors: [Color(0x332DD4BF), Color(0x335675F3)],
   );
 
   static const LinearGradient cardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [NeonPalette.midnightSoft, NeonPalette.midnight],
+    colors: [Color(0xFF1F2A44), Color(0xFF18243A)],
   );
 
   static const LinearGradient glassStrokeGradient = LinearGradient(
-    colors: [NeonPalette.cyanPulse, NeonPalette.hotPink],
+    colors: [NeonPalette.accentTeal, NeonPalette.accentBlue],
   );
 }
 
@@ -43,19 +43,16 @@ class GlassDecorations {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withOpacity(0.18),
-          Colors.white.withOpacity(0.08),
+          Colors.white.withValues(alpha: 0.14),
+          Colors.white.withValues(alpha: 0.06),
         ],
       ),
-      border: Border.all(
-        width: 1,
-        color: Colors.white.withOpacity(0.25),
-      ),
+      border: Border.all(width: 1, color: Colors.white.withValues(alpha: 0.18)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.2),
-          blurRadius: 24,
-          offset: const Offset(0, 18),
+          color: Colors.black.withValues(alpha: 0.3),
+          blurRadius: 32,
+          offset: const Offset(0, 20),
         ),
       ],
     );
@@ -63,84 +60,88 @@ class GlassDecorations {
 }
 
 ThemeData buildNeonTheme() {
-  final textTheme = GoogleFonts.spaceGroteskTextTheme().apply(
-    bodyColor: Colors.white,
-    displayColor: Colors.white,
+  final textTheme = GoogleFonts.interTextTheme().apply(
+    bodyColor: NeonPalette.textPrimary,
+    displayColor: NeonPalette.textPrimary,
   );
 
-  final colorScheme = ColorScheme.fromSeed(
-    seedColor: NeonPalette.electricBlue,
-    brightness: Brightness.dark,
-    background: NeonPalette.midnight,
-    surface: NeonPalette.midnightSoft,
-  ).copyWith(
-    primary: NeonPalette.cyanPulse,
-    secondary: NeonPalette.violetWave,
-    tertiary: NeonPalette.successMint,
-    error: NeonPalette.warningRed,
-    outline: Colors.white.withOpacity(0.4),
-    surfaceTint: Colors.white.withOpacity(0.3),
-  );
+  final colorScheme =
+      ColorScheme.fromSeed(
+        seedColor: NeonPalette.accentTeal,
+        brightness: Brightness.dark,
+      ).copyWith(
+        surface: NeonPalette.slate,
+        primary: NeonPalette.accentTeal,
+        secondary: NeonPalette.accentBlue,
+        tertiary: NeonPalette.successMint,
+        error: NeonPalette.warningRed,
+        outline: NeonPalette.textMuted,
+        primaryContainer: NeonPalette.card,
+        secondaryContainer: NeonPalette.mist,
+        surfaceTint: Colors.white.withValues(alpha: 0.08),
+      );
 
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: colorScheme,
-    scaffoldBackgroundColor: NeonPalette.midnight,
+    scaffoldBackgroundColor: NeonPalette.night,
     textTheme: textTheme,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
+    appBarTheme: AppBarTheme(
+      backgroundColor: NeonPalette.slate.withValues(alpha: 0.85),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      titleTextStyle: textTheme.titleLarge,
     ),
     cardTheme: CardThemeData(
       clipBehavior: Clip.antiAlias,
-      color: NeonPalette.midnightSoft.withOpacity(0.8),
+      color: NeonPalette.card,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white.withOpacity(0.04),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      fillColor: Colors.white.withValues(alpha: 0.03),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: NeonPalette.cyanPulse, width: 1.6),
+        borderSide: const BorderSide(color: NeonPalette.accentTeal, width: 1.6),
       ),
-      labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+      labelStyle: TextStyle(color: NeonPalette.textMuted),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: NeonPalette.hotPink,
-        foregroundColor: Colors.white,
+        backgroundColor: NeonPalette.accentTeal,
+        foregroundColor: NeonPalette.night,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: NeonPalette.violetWave,
+        backgroundColor: NeonPalette.accentBlue,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: NeonPalette.hotPink,
-      foregroundColor: Colors.white,
+      backgroundColor: NeonPalette.accentAmber,
+      foregroundColor: NeonPalette.night,
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: Colors.white.withOpacity(0.18),
+      backgroundColor: NeonPalette.slateSoft,
       contentTextStyle: textTheme.bodyMedium,
       behavior: SnackBarBehavior.floating,
+    ),
+    listTileTheme: ListTileThemeData(
+      iconColor: NeonPalette.textPrimary,
+      textColor: NeonPalette.textPrimary,
     ),
   );
 }
@@ -154,23 +155,27 @@ class NeonBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(color: NeonPalette.midnight),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [NeonPalette.slate, NeonPalette.night],
+        ),
+      ),
       child: Stack(
         children: [
           Positioned.fill(
-            child: CustomPaint(
-              painter: _NeonGridPainter(showGrid: showGrid),
-            ),
+            child: CustomPaint(painter: _NeonGridPainter(showGrid: showGrid)),
           ),
           Positioned(
             top: -120,
-            right: -60,
-            child: _blurCircle(Colors.pinkAccent),
+            right: -40,
+            child: _blurCircle(NeonPalette.accentBlue),
           ),
           Positioned(
             bottom: -140,
-            left: -60,
-            child: _blurCircle(Colors.cyanAccent),
+            left: -40,
+            child: _blurCircle(NeonPalette.accentTeal),
           ),
           child,
         ],
@@ -185,7 +190,7 @@ class NeonBackground extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [color.withOpacity(0.5), Colors.transparent],
+          colors: [color.withValues(alpha: 0.18), Colors.transparent],
         ),
       ),
     );
@@ -202,7 +207,7 @@ class _NeonGridPainter extends CustomPainter {
     if (!showGrid) return;
 
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.02)
+      ..color = Colors.white.withValues(alpha: 0.015)
       ..strokeWidth = 1;
 
     const gridSize = 60.0;

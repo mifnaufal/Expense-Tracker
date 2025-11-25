@@ -194,25 +194,54 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final titleStyle = theme.textTheme.titleMedium?.copyWith(
       fontWeight: FontWeight.w700,
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expense Tracker'),
+        titleSpacing: 16,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Expense Tracker',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Text(
+              'Pantau keuanganmu dalam satu tempat',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
+          IconButton.filledTonal(
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.secondaryContainer.withValues(
+                alpha: 0.6,
+              ),
+            ),
             icon: const Icon(Icons.bar_chart_outlined),
-            onPressed:
-                _transactions.isEmpty ? null : _navigateToSummaryScreen,
+            onPressed: _transactions.isEmpty ? null : _navigateToSummaryScreen,
             tooltip: 'Ringkasan',
           ),
-          IconButton(
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.secondaryContainer.withValues(
+                alpha: 0.6,
+              ),
+            ),
             icon: const Icon(Icons.download_outlined),
             onPressed: _exportTransactions,
             tooltip: 'Ekspor JSON',
           ),
+          const SizedBox(width: 12),
         ],
       ),
       body: SafeArea(
@@ -235,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                        padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -266,19 +295,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(0, 0, 0, 96),
                         sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final transaction = _transactions[index];
-                              return TransactionCard(
-                                transaction: transaction,
-                                onEdit: () =>
-                                    _navigateToEditScreen(transaction),
-                                onDelete: () =>
-                                    _confirmDeleteTransaction(transaction),
-                              );
-                            },
-                            childCount: _transactions.length,
-                          ),
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final transaction = _transactions[index];
+                            return TransactionCard(
+                              transaction: transaction,
+                              onEdit: () => _navigateToEditScreen(transaction),
+                              onDelete: () =>
+                                  _confirmDeleteTransaction(transaction),
+                            );
+                          }, childCount: _transactions.length),
                         ),
                       ),
                   ],

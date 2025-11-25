@@ -29,31 +29,39 @@ class BalanceSummary extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primaryContainer.withValues(alpha: 0.95),
+            colorScheme.secondaryContainer.withValues(alpha: 0.9),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: const [
           BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
+            color: Color(0x40000000),
+            blurRadius: 30,
+            offset: Offset(0, 20),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Total Saldo',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             balanceText,
             style: theme.textTheme.headlineMedium?.copyWith(
-              color: colorScheme.onPrimaryContainer,
+              color: Colors.white,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -110,16 +118,14 @@ class BalanceSummary extends StatelessWidget {
         Row(
           mainAxisAlignment: headerAlignment,
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 18,
-            ),
+            Icon(icon, color: color, size: 18),
             const SizedBox(width: 6),
             Text(
               title,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.75),
+                color: theme.colorScheme.onPrimaryContainer.withValues(
+                  alpha: 0.75,
+                ),
               ),
             ),
           ],

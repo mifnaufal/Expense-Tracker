@@ -23,7 +23,8 @@ class SummaryScreen extends StatelessWidget {
       final txDate = DateTime(tx.date.year, tx.date.month, tx.date.day);
 
       final bool isToday = _isSameDay(txDate, todayStart);
-      final bool isWithinWeek = !txDate.isBefore(weekStart) && !txDate.isAfter(todayStart);
+      final bool isWithinWeek =
+          !txDate.isBefore(weekStart) && !txDate.isAfter(todayStart);
 
       if (isToday) {
         if (tx.type == TransactionType.pemasukan) {
@@ -47,10 +48,10 @@ class SummaryScreen extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Ringkasan Keuangan'),
-      ),
+      appBar: AppBar(title: const Text('Ringkasan Keuangan')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -59,32 +60,44 @@ class SummaryScreen extends StatelessWidget {
             children: [
               Text(
                 'Ringkasan Sederhana',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _buildTotalsCard(
                 context: context,
                 title: 'Ringkasan Hari Ini',
                 income: todayIncome,
                 expense: todayExpense,
                 currency: currency,
+                gradientColors: [
+                  colorScheme.primaryContainer.withValues(alpha: 0.9),
+                  colorScheme.secondaryContainer.withValues(alpha: 0.9),
+                ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               _buildTotalsCard(
                 context: context,
                 title: 'Ringkasan 7 Hari Terakhir',
                 income: weekIncome,
                 expense: weekExpense,
                 currency: currency,
+                gradientColors: [
+                  colorScheme.secondaryContainer.withValues(alpha: 0.9),
+                  colorScheme.surface.withValues(alpha: 0.9),
+                ],
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Center(
                 child: Text(
                   '(Grafik sederhana bisa ditambahkan di sini)',
-                  style: TextStyle(color: Colors.grey),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.outline,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -98,57 +111,70 @@ class SummaryScreen extends StatelessWidget {
     required double income,
     required double expense,
     required NumberFormat currency,
+    required List<Color> gradientColors,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final double netBalance = income - expense;
-    final Color netColor =
-        netBalance >= 0 ? colorScheme.tertiary : colorScheme.error;
+    final Color netColor = netBalance >= 0
+        ? colorScheme.tertiary
+        : colorScheme.error;
 
-    return Card(
-      color: colorScheme.surface,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface.withValues(alpha: 0.75),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currency.format(netBalance),
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: netColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildMetricRow(
-              context: context,
-              label: 'Pemasukan',
-              amount: income,
-              color: colorScheme.tertiary,
-              icon: Icons.arrow_upward,
-              currency: currency,
-            ),
-            const SizedBox(height: 8),
-            _buildMetricRow(
-              context: context,
-              label: 'Pengeluaran',
-              amount: expense,
-              color: colorScheme.error,
-              icon: Icons.arrow_downward,
-              currency: currency,
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
         ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F000000),
+            blurRadius: 24,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.75),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            currency.format(netBalance),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: netColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildMetricRow(
+            context: context,
+            label: 'Pemasukan',
+            amount: income,
+            color: colorScheme.tertiary,
+            icon: Icons.arrow_upward,
+            currency: currency,
+          ),
+          const SizedBox(height: 8),
+          _buildMetricRow(
+            context: context,
+            label: 'Pengeluaran',
+            amount: expense,
+            color: colorScheme.error,
+            icon: Icons.arrow_downward,
+            currency: currency,
+          ),
+        ],
       ),
     );
   }
