@@ -103,13 +103,13 @@ step-by-step:
 
 - flutter pub get
 - flutter pub upgrade --major-versions
-- cd backend (pastikan udah didalam projectnya rootnya)
+- cd backend
 - dart pub get
 - dart pub upgrade --major-versions
-- dart run bin/server.dart <-- (SEKALI AJA)
+- dart run bin/server.dart
 - buat terminal baru/keluar dari folder backend
 - flutter run -d chrome (atau yang biasa kamu pake buat ngerun flutter)
 
-note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5
+note: tunggu processing dari dart shelfnya selesai setiap kali ngerun line ke 5, sekali aja
 
 note 2: kalau ada error, pake flutter analyze dan kasih ai :) jika analyzenya oke tapi commandnya error gak tau dah tu
